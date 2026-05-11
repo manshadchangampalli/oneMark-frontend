@@ -1,0 +1,198 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Our design tokens (declared first, then re-asserted after shadcn inline) ── */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui;
+  --font-serif: 'Lora', ui-serif, Georgia;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-paper: #faf7f2;
+  --color-paper-dark: #15140f;
+  --color-surface: #ffffff;
+  --color-surface-dark: #1c1a14;
+  --color-line: #eae5da;
+  --color-line-dark: #2a2720;
+  --color-ink: #1a1815;
+  --color-ink-dark: #f2eee6;
+  --color-ink-muted: #6b6760;
+  --color-ink-muted-dark: #9c9686;
+  --color-accent-soft: #f8e5d7;
+  --color-good: #3d7a4e;
+  --color-good-soft: #e1ebdf;
+  --color-warn: #c8941e;
+  --color-warn-soft: #f4e8cb;
+  --color-bad: #a8341c;
+  --color-fire: #e8580c;
+
+  --radius-xl2: 14px;
+}
+
+/* ── Shadcn inline theme (sidebar, chart, ring, etc.) — accent overridden below ── */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  /* NOTE: --color-accent-foreground kept from shadcn for its components */
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /* ↓ Our brand accent always wins — must come after shadcn's --color-accent */
+  --color-accent: #d4541a;
+}
+
+/* ── Shadcn CSS variable definitions ── */
+:root {
+  --background: #faf7f2;
+  --foreground: #1a1815;
+  --card: #ffffff;
+  --card-foreground: #1a1815;
+  --popover: #ffffff;
+  --popover-foreground: #1a1815;
+  --primary: #d4541a;
+  --primary-foreground: #ffffff;
+  --secondary: #f0ece4;
+  --secondary-foreground: #1a1815;
+  --muted: #f0ece4;
+  --muted-foreground: #6b6760;
+  --accent: #f0ece4;
+  --accent-foreground: #1a1815;
+  --destructive: #a8341c;
+  --border: #eae5da;
+  --input: #eae5da;
+  --ring: #d4541a;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.5rem;
+  --sidebar: #faf7f2;
+  --sidebar-foreground: #1a1815;
+  --sidebar-primary: #d4541a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0ece4;
+  --sidebar-accent-foreground: #1a1815;
+  --sidebar-border: #eae5da;
+  --sidebar-ring: #d4541a;
+}
+
+.dark {
+  --background: #15140f;
+  --foreground: #f2eee6;
+  --card: #1c1a14;
+  --card-foreground: #f2eee6;
+  --popover: #1c1a14;
+  --popover-foreground: #f2eee6;
+  --primary: #e8702a;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2720;
+  --secondary-foreground: #f2eee6;
+  --muted: #2a2720;
+  --muted-foreground: #9c9686;
+  --accent: #2a2720;
+  --accent-foreground: #f2eee6;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #2a2720;
+  --input: #2a2720;
+  --ring: #d4541a;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: #1c1a14;
+  --sidebar-foreground: #f2eee6;
+  --sidebar-primary: #d4541a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2720;
+  --sidebar-accent-foreground: #f2eee6;
+  --sidebar-border: #2a2720;
+  --sidebar-ring: #d4541a;
+}
+
+/* ── Base ── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-paper text-ink dark:bg-paper-dark dark:text-ink-dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Every button/link gets pointer by default */
+  button,
+  [role='button'],
+  a {
+    cursor: pointer;
+  }
+}
+
+/* ── Utilities ── */
+.font-mono,
+.tab-num {
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+button:focus-visible,
+[role='button']:focus-visible {
+  outline: 1.5px solid #d4541a;
+  outline-offset: 2px;
+}
+
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.view-in { animation: viewIn 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal-in { animation: revealIn 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+.ghost-press:active { transform: translateY(0.5px); }
