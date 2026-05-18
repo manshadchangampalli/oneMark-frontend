@@ -158,7 +158,7 @@ function LoginView({ onBack, onSignup, onSuccess }: any) {
     setLoading(true);
     try {
       const tokens = await authApi.login({ email, password: pw });
-      const user = await authApi.getMe();
+      const user = await authApi.getMe(tokens.accessToken);
       setAuth(user, tokens.accessToken);
       toast.success('Logged in successfully!');
       onSuccess(user);
@@ -238,7 +238,7 @@ function SignupView({ onBack, onSuccess }: any) {
       setLoading(true);
       try {
         const tokens = await authApi.signup(data);
-        const user = await authApi.getMe();
+        const user = await authApi.getMe(tokens.accessToken);
         setAuth(user, tokens.accessToken);
         toast.success('Welcome to oneMark!');
         onSuccess(user);

@@ -13,8 +13,10 @@ export const authApi = {
   logout: async () => {
     await apiClient.post('/auth/logout');
   },
-  getMe: async () => {
-    const res = await apiClient.get<User>('/auth/me');
+  getMe: async (token?: string) => {
+    const res = await apiClient.get<User>('/auth/me', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return res.data;
   },
 };
