@@ -22,29 +22,16 @@ import {
   TARGET_EXAMS,
 } from './components/AuthComponents';
 
-// ---------- Phone shell ----------
-function PhoneShell({ children }: { children: React.ReactNode }) {
+// ---------- Auth Container ----------
+function AuthContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-0 sm:p-8 bg-paper-dark">
+    <div className="min-h-screen w-full flex items-center justify-center p-0 sm:p-8 bg-surface dark:bg-surface-dark">
       <div className="
-        w-full sm:w-[400px] sm:rounded-[36px] sm:border sm:border-black/40 sm:shadow-[0_30px_80px_rgba(0,0,0,0.45)]
+        w-full sm:max-w-[440px] sm:rounded-2xl sm:border sm:border-line sm:dark:border-line-dark sm:shadow-lg
         bg-paper dark:bg-paper-dark text-ink dark:text-ink-dark
-        h-screen sm:h-[820px] flex flex-col overflow-hidden relative
+        h-screen sm:h-auto sm:min-h-[640px] flex flex-col overflow-hidden relative
       ">
-        {/* Status bar (desktop only) */}
-        <div className="hidden sm:flex items-center justify-between px-6 pt-3 pb-1 text-[11px] font-mono tab-num text-ink dark:text-ink-dark">
-          <span>9:41</span>
-          <div className="flex items-center gap-1.5">
-            <svg width="13" height="11" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="9" width="2" height="3" rx="0.5"/><rect x="4" y="6" width="2" height="6" rx="0.5"/><rect x="8" y="3" width="2" height="9" rx="0.5"/><rect x="12" y="0" width="2" height="12" rx="0.5"/></svg>
-            <svg width="14" height="11" viewBox="0 0 16 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1 5a11 11 0 0 1 14 0"/><path d="M3.5 7.5a7 7 0 0 1 9 0"/><path d="M6 10a3 3 0 0 1 4 0"/></svg>
-            <svg width="22" height="11" viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="1"><rect x="1" y="2" width="19" height="8" rx="2"/><rect x="3" y="4" width="15" height="4" rx="0.5" fill="currentColor"/><rect x="21" y="4.5" width="1.5" height="3" fill="currentColor"/></svg>
-          </div>
-        </div>
         {children}
-        {/* iOS home indicator */}
-        <div className="hidden sm:flex justify-center pb-1.5 absolute bottom-0 inset-x-0 pointer-events-none">
-          <div className="w-28 h-1 rounded-full bg-ink/35 dark:bg-ink-dark/40" />
-        </div>
       </div>
     </div>
   );
@@ -358,13 +345,13 @@ export default function AuthScreen() {
   const [user, setUser] = useState<any>(null);
 
   return (
-    <PhoneShell>
+    <AuthContainer>
       <AnimatePresence mode="wait">
         {view === 'welcome' && <WelcomeView key="w" onLogin={() => setView('login')} onSignup={() => setView('signup')} />}
         {view === 'login' && <LoginView key="l" onBack={() => setView('welcome')} onSignup={() => setView('signup')} onSuccess={(u: any) => { setUser(u); setView('done'); }} />}
         {view === 'signup' && <SignupView key="s" onBack={() => setView('welcome')} onLogin={() => setView('login')} onSuccess={(u: any) => { setUser(u); setView('done'); }} />}
         {view === 'done' && <DoneView key="d" user={user} />}
       </AnimatePresence>
-    </PhoneShell>
+    </AuthContainer>
   );
 }

@@ -36,13 +36,13 @@ export function AppLayout() {
   const { isDark, toggleDark } = useAppStore();
   const { isAuthenticated, user } = useAuthStore();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate(ROUTES.AUTH, { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     navigate(ROUTES.AUTH, { replace: true });
+  //   }
+  // }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated) return null;
+  // if (!isAuthenticated) return null;
 
   const isQuestion = pathname === ROUTES.QUESTION;
   const initial = user?.name?.[0] || 'U';
