@@ -206,7 +206,7 @@ function LoginView({ onBack, onSignup, onSuccess }: any) {
   );
 }
 
-function SignupView({ onBack, onLogin, onSuccess }: any) {
+function SignupView({ onBack, onSuccess }: any) {
   const [step, setStep] = useState(1);
   const [data, setData] = useState({
     email: '', password: '', name: '',

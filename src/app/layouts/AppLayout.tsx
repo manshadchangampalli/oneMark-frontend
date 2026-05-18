@@ -5,7 +5,6 @@ import { ROUTES } from '@/constants';
 import { Avatar } from '@/components/ui';
 import { useAppStore } from '@/store';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useEffect } from 'react';
 
 interface Tab {
   id: string;
@@ -34,7 +33,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isDark, toggleDark } = useAppStore();
-  const { isAuthenticated, user } = useAuthStore();
+  const { user } = useAuthStore();
 
   // useEffect(() => {
   //   if (!isAuthenticated) {

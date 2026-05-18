@@ -1,4 +1,4 @@
-import { Moon, Bell, Globe, Download, Shield, HelpCircle, LogOut, ChevronRight, Sun, Monitor } from 'lucide-react';
+import { Moon, Globe, Download, Shield, HelpCircle, LogOut, ChevronRight, Sun, Monitor } from 'lucide-react';
 import { Card, SectionHeader, Avatar, Pill } from '@/components/ui';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
