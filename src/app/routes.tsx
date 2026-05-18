@@ -1,7 +1,13 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AppLayout } from './layouts/AppLayout';
 import { ROUTES } from '@/constants';
+import { useAuthStore } from '@/store/useAuthStore';
+
+function ProtectedRoute() {
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  return isAuthenticated ? <Outlet /> : <Navigate to={ROUTES.AUTH} replace />;
+}
 
 const Home = lazy(() => import('@/screens/home/Home'));
 const Practice = lazy(() => import('@/screens/practice/Practice'));
@@ -21,24 +27,29 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to={ROUTES.HOME} replace /> },
       {
-        path: 'today',
-        element: <Suspense fallback={<Loading />}><Home /></Suspense>,
-      },
-      {
-        path: 'practice',
-        element: <Suspense fallback={<Loading />}><Practice /></Suspense>,
-      },
-      {
-        path: 'question',
-        element: <Suspense fallback={<Loading />}><Question /></Suspense>,
-      },
-      {
-        path: 'progress',
-        element: <Suspense fallback={<Loading />}><Progress /></Suspense>,
-      },
-      {
-        path: 'profile',
-        element: <Suspense fallback={<Loading />}><Profile /></Suspense>,
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: 'today',
+            element: <Suspense fallback={<Loading />}><Home /></Suspense>,
+          },
+          {
+            path: 'practice',
+            element: <Suspense fallback={<Loading />}><Practice /></Suspense>,
+          },
+          {
+            path: 'question',
+            element: <Suspense fallback={<Loading />}><Question /></Suspense>,
+          },
+          {
+            path: 'progress',
+            element: <Suspense fallback={<Loading />}><Progress /></Suspense>,
+          },
+          {
+            path: 'profile',
+            element: <Suspense fallback={<Loading />}><Profile /></Suspense>,
+          },
+        ],
       },
     ],
   },
