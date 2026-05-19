@@ -88,10 +88,10 @@ function WelcomeView({ onLogin, onSignup }: any) {
       exit={{ opacity: 0, y: -10 }}
       className="flex-1 flex flex-col h-full"
     >
-      <div className="flex-1 px-6 pt-8 flex flex-col min-h-0">
+      <div className="flex-1 px-6 pt-6 flex flex-col min-h-0 overflow-hidden">
         <Wordmark size="lg" />
-        <div className="mt-6 relative">
-          <div className="aspect-video rounded-xl2 border border-line dark:border-line-dark bg-surface dark:bg-surface-dark overflow-hidden">
+        <div className="mt-4 relative shrink-0">
+          <div className="h-[150px] rounded-xl2 border border-line dark:border-line-dark bg-surface dark:bg-surface-dark overflow-hidden">
              <svg viewBox="0 0 320 240" className="w-full h-full">
               <defs>
                 <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
@@ -119,17 +119,17 @@ function WelcomeView({ onLogin, onSignup }: any) {
             <span className="tab-num">+50 XP</span> daily
           </div>
         </div>
-        <div className="mt-6">
-          <h1 className="text-[24px] leading-[1.15] font-semibold tracking-tight text-ink dark:text-ink-dark">
+        <div className="mt-4">
+          <h1 className="text-[22px] leading-[1.2] font-semibold tracking-tight text-ink dark:text-ink-dark">
             One question, every day.<br/>
             <span className="font-serif italic font-normal text-ink-muted dark:text-ink-muted-dark">A whole lot of progress.</span>
           </h1>
-          <p className="mt-2 text-[13.5px] text-ink-muted dark:text-ink-muted-dark leading-relaxed max-w-[34ch]">
+          <p className="mt-1.5 text-[13px] text-ink-muted dark:text-ink-muted-dark leading-relaxed max-w-[34ch]">
             Drill JEE, NEET, CUET and Boards with adaptive practice and explanations from real students.
           </p>
         </div>
       </div>
-      <div className="px-6 pb-8 pt-4 space-y-3 border-t border-line dark:border-line-dark bg-paper dark:bg-paper-dark">
+      <div className="px-6 pb-6 pt-4 space-y-3 border-t border-line dark:border-line-dark bg-paper dark:bg-paper-dark shrink-0">
         <Button variant="primary" iconRight={<I.arrowRight/>} onClick={onSignup}>
           Create account
         </Button>
