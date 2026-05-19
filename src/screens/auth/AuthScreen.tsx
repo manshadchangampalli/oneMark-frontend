@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,8 +6,7 @@ import { cn as clsx } from '@/utils/cn';
 import { ROUTES } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth.api';
-import { locationApi } from '@/api/location.api';
-import type { State, District, Exam } from '@/api/location.api';
+import { useStates, useDistricts, useExams } from '@/hooks/useLocation';
 import {
   Wordmark,
   I,
@@ -215,21 +214,11 @@ function SignupView({ onBack, onSuccess }: any) {
   });
   const [err, setErr] = useState<any>({});
   const [loading, setLoading] = useState(false);
-  const [states, setStates] = useState<State[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [exams, setExams] = useState<Exam[]>([]);
+  const { data: states = [] } = useStates();
+  const { data: districts = [] } = useDistricts(data.stateId);
+  const { data: exams = [] } = useExams();
   const setAuth = useAuthStore(s => s.setAuth);
   const TOTAL = 4;
-
-  useEffect(() => {
-    locationApi.getStates().then(setStates).catch(() => {});
-    locationApi.getExams().then(setExams).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (!data.stateId) { setDistricts([]); return; }
-    locationApi.getDistricts(data.stateId).then(setDistricts).catch(() => {});
-  }, [data.stateId]);
 
   const set = (k: string, v: string) => setData(d => ({ ...d, [k]: v }));
 
