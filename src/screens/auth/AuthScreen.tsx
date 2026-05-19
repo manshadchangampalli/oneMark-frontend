@@ -6,7 +6,8 @@ import { cn as clsx } from '@/utils/cn';
 import { ROUTES } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth.api';
-import { useStates, useDistricts, useExams } from '@/hooks/useLocation';
+import { useStates, useDistricts, useExams } from '@/hooks/location.hooks';
+import { useSignup, useLogin, useLogout } from './hooks/auth.hooks';
 import {
   Wordmark,
   I,
@@ -42,7 +43,7 @@ function TopBar({ onBack, title, step, total }: any) {
     <div className="px-3 pt-3 pb-3 flex items-center gap-2">
       <button
         onClick={onBack}
-        className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-ink/[0.04] dark:hover:bg-ink-dark/[0.06] text-ink dark:text-ink-dark"
+        className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-ink/4 dark:hover:bg-ink-dark/6 text-ink dark:text-ink-dark"
       >
         <I.arrowLeft/>
       </button>
