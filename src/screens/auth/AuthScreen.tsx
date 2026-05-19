@@ -7,7 +7,7 @@ import { ROUTES } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth.api';
 import { locationApi } from '@/api/location.api';
-import type { State, District } from '@/api/location.api';
+import type { State, District, Exam } from '@/api/location.api';
 import {
   Wordmark,
   I,
@@ -217,11 +217,13 @@ function SignupView({ onBack, onSuccess }: any) {
   const [loading, setLoading] = useState(false);
   const [states, setStates] = useState<State[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
+  const [exams, setExams] = useState<Exam[]>([]);
   const setAuth = useAuthStore(s => s.setAuth);
   const TOTAL = 4;
 
   useEffect(() => {
     locationApi.getStates().then(setStates).catch(() => {});
+    locationApi.getExams().then(setExams).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -314,10 +316,10 @@ function SignupView({ onBack, onSuccess }: any) {
               <Field label="Current grade" optional><Select value={data.grade} onChange={(e:any) => set('grade', e.target.value)} options={GRADES} placeholder="Select grade" /></Field>
               <Field label="Target exam" optional>
                 <div className="grid grid-cols-2 gap-2">
-                  {TARGET_EXAMS.map(ex => (
-                    <button key={ex.id} type="button" onClick={() => set('targetExam', ex.id)} className={clsx('text-left p-3 rounded-xl2 border transition-colors', data.targetExam === ex.id ? 'border-accent bg-accent-soft/30' : 'border-line bg-surface')}>
+                  {exams.map(ex => (
+                    <button key={ex.id} type="button" onClick={() => set('targetExam', ex.code)} className={clsx('text-left p-3 rounded-xl2 border transition-colors', data.targetExam === ex.code ? 'border-accent bg-accent-soft/30' : 'border-line bg-surface')}>
                       <div className="text-[13px] font-semibold">{ex.label}</div>
-                      <div className="text-[10px] text-ink-muted">{ex.sub}</div>
+                      {ex.description && <div className="text-[10px] text-ink-muted">{ex.description}</div>}
                     </button>
                   ))}
                 </div>
