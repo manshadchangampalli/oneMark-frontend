@@ -2,10 +2,24 @@ import { useNavigate } from 'react-router-dom';
 import { Users, CalendarClock, ChevronRight, ArrowRight, BookOpen, Trophy, Flame } from 'lucide-react';
 import { Card, Button, SectionHeader, Pill, ProgressRing, Mascot } from '@/components/ui';
 import { TOPICS, RECOMMENDED, DAILY_Q, SUBJECTS, ROUTES } from '@/constants';
+import { useAuthStore } from '@/store/useAuthStore';
 import { StreakCard } from './components';
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function todayLabel() {
+  return new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' });
+}
 
 export default function Home() {
   const navigate = useNavigate();
+  const user = useAuthStore(s => s.user);
+  const firstName = user?.name?.split(' ')[0] ?? 'there';
 
   return (
     <div className="view-in pb-6 lg:pb-0">
@@ -22,11 +36,11 @@ export default function Home() {
           <div className="px-5 pt-3 pb-5 lg:px-0 lg:pt-0 lg:pb-6 flex items-start justify-between gap-3">
             <div>
               <div className="text-[11px] uppercase tracking-[0.14em] text-ink-muted dark:text-ink-muted-dark font-mono">
-                Saturday · May 10
+                {todayLabel()}
               </div>
               <h1 className="mt-1 text-[24px] lg:text-[28px] leading-tight font-semibold text-ink dark:text-ink-dark tracking-tight">
-                Good morning,<br />
-                <span className="font-serif italic font-normal">Riya.</span>
+                {greeting()},<br />
+                <span className="font-serif italic font-normal">{firstName}.</span>
               </h1>
               <p className="hidden lg:block mt-2 text-[14px] text-ink-muted dark:text-ink-muted-dark">
                 You've solved <span className="font-mono font-medium text-ink dark:text-ink-dark">1,284</span> questions · 23-day streak · <span className="text-good font-medium">keep going!</span>
