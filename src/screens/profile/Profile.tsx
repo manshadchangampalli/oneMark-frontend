@@ -5,11 +5,16 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { STUDY_BUDDIES, ACHIEVEMENTS } from '@/constants';
 import { useAppStore } from '@/store';
+import { useAuthStore } from '@/store/useAuthStore';
+import { authApi } from '@/api/auth.api';
 import { SettingRow } from './components';
 import { cn } from '@/utils';
 import { Medal, Flame, Trophy, Moon as MoonIcon, MessageSquare, Lock } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/constants';
+import { toast } from 'react-hot-toast';
 
 const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
   medal: Medal, flame: Flame, trophy: Trophy, moon: MoonIcon, 'message-square': MessageSquare,
@@ -17,12 +22,28 @@ const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
 
 export default function Profile() {
   const { isDark, setDark, notificationsEnabled, toggleNotifications } = useAppStore();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [notifyFreq, setNotifyFreq] = useState('daily');
   const [theme, setTheme] = useState(isDark ? 'dark' : 'light');
+  const [signingOut, setSigningOut] = useState(false);
 
   function handleThemeChange(value: string) {
     setTheme(value);
     setDark(value === 'dark');
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      await authApi.logout();
+    } catch {
+      // ignore — clear local state regardless
+    } finally {
+      logout();
+      navigate(ROUTES.AUTH, { replace: true });
+      toast.success('Signed out');
+    }
   }
 
   return (
@@ -41,13 +62,13 @@ export default function Profile() {
           <div className="px-5 mt-3 lg:px-0 lg:mt-0">
             <Card>
               <div className="flex items-start gap-4">
-                <Avatar initial="R" tone="accent" size={64} />
+                <Avatar initial={user?.name?.[0] ?? 'U'} tone="accent" size={64} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[18px] font-semibold text-ink dark:text-ink-dark tracking-tight">Riya Subramanian</div>
-                  <div className="text-[13px] text-ink-muted dark:text-ink-muted-dark">Class 12 · St. Xavier's, Mumbai</div>
+                  <div className="text-[18px] font-semibold text-ink dark:text-ink-dark tracking-tight">{user?.name ?? '—'}</div>
+                  <div className="text-[13px] text-ink-muted dark:text-ink-muted-dark">{[user?.grade, user?.school].filter(Boolean).join(' · ') || 'No school set'}</div>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <Pill tone="accent">Target: JEE 2026</Pill>
-                    <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">Joined Jan 2025</span>
+                    {user?.targetExam && <Pill tone="accent">Target: {user.targetExam.toUpperCase()}</Pill>}
+                    <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">{user?.email}</span>
                   </div>
                 </div>
               </div>
@@ -214,8 +235,12 @@ export default function Profile() {
             </ul>
           </Card>
 
-          <button className="w-full h-11 rounded-lg border border-line dark:border-line-dark text-[13.5px] font-medium text-bad hover:bg-bad/5 flex items-center justify-center gap-2 transition-colors">
-            <LogOut size={15} /> Sign out
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="w-full h-11 rounded-lg border border-line dark:border-line-dark text-[13.5px] font-medium text-bad hover:bg-bad/5 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+          >
+            <LogOut size={15} /> {signingOut ? 'Signing out…' : 'Sign out'}
           </button>
 
           <div className="text-center text-[11px] text-ink-muted dark:text-ink-muted-dark font-mono pb-2">
