@@ -91,7 +91,7 @@ export function TextInput({ icon, type = 'text', value, onChange, placeholder, a
         onBlur={onBlur}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="flex-1 min-w-0 bg-transparent outline-none text-[15px] text-ink dark:text-ink-dark placeholder:text-ink-muted/70 dark:placeholder:text-ink-muted-dark/70"
+        className="flex-1 min-w-0 bg-transparent outline-none text-[16px] text-ink dark:text-ink-dark placeholder:text-ink-muted/70 dark:placeholder:text-ink-muted-dark/70"
       />
       {rightSlot}
     </div>
@@ -135,7 +135,7 @@ export function Select({ icon, value, onChange, placeholder, options, optionValu
         onChange={onChange}
         disabled={disabled}
         className={clsx(
-          'flex-1 min-w-0 bg-transparent outline-none text-[15px] appearance-none pr-6',
+          'flex-1 min-w-0 bg-transparent outline-none text-[16px] appearance-none pr-6',
           value ? 'text-ink dark:text-ink-dark' : 'text-ink-muted/80 dark:text-ink-muted-dark/80'
         )}
       >
@@ -155,8 +155,8 @@ export function Select({ icon, value, onChange, placeholder, options, optionValu
 
 export function Button({ children, variant='primary', size='lg', icon, iconRight, className='', disabled, onClick, type='button', loading }: any) {
   const sizes: any = {
-    md: 'h-11 px-4 text-[14px]',
-    lg: 'h-12 px-5 text-[15px]',
+    md: 'h-11 px-4 text-[16px]',
+    lg: 'h-12 px-5 text-[16px]',
   };
   const variants: any = {
     primary:   'bg-accent text-white hover:bg-[#BF4715] disabled:bg-[#E0B19E] disabled:text-white/85 disabled:cursor-not-allowed',
