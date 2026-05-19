@@ -3,7 +3,7 @@ import { ApiRoute, ApiRouteParam } from '@/services/api';
 
 export interface State    { id: string; name: string; code: string; }
 export interface District { id: string; name: string; }
-export interface Exam     { id: string; code: string; label: string; description: string | null; }
+export interface Exam     { id: string; code: string; label: string; description: string | null; isActive: boolean; }
 
 export const locationApi = {
   getStates: async (): Promise<State[]> => {

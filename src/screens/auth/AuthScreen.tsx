@@ -301,9 +301,20 @@ function SignupView({ onBack, onSuccess }: any) {
               <Field label="Target exam" optional>
                 <div className="grid grid-cols-2 gap-2">
                   {exams.map(ex => (
-                    <button key={ex.id} type="button" onClick={() => set('targetExam', ex.code)} className={clsx('text-left p-3 rounded-xl2 border transition-colors', data.targetExam === ex.code ? 'border-accent bg-accent-soft/30' : 'border-line bg-surface')}>
+                    <button
+                      key={ex.id}
+                      type="button"
+                      disabled={!ex.isActive}
+                      onClick={() => ex.isActive && set('targetExam', ex.code)}
+                      className={clsx(
+                        'text-left p-3 rounded-xl2 border transition-colors',
+                        !ex.isActive && 'opacity-40 cursor-not-allowed',
+                        ex.isActive && data.targetExam === ex.code ? 'border-accent bg-accent-soft/30' : 'border-line bg-surface',
+                      )}
+                    >
                       <div className="text-[13px] font-semibold">{ex.label}</div>
                       {ex.description && <div className="text-[10px] text-ink-muted">{ex.description}</div>}
+                      {!ex.isActive && <div className="text-[9px] text-ink-muted mt-0.5 uppercase tracking-wide">Coming soon</div>}
                     </button>
                   ))}
                 </div>
