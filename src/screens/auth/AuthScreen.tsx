@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,8 @@ import { cn as clsx } from '@/utils/cn';
 import { ROUTES } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth.api';
+import { locationApi } from '@/api/location.api';
+import type { State, District } from '@/api/location.api';
 import {
   Wordmark,
   I,
@@ -16,8 +18,6 @@ import {
   Select,
   StrengthMeter,
   strengthOf,
-  STATES,
-  STATES_DISTRICTS,
   GRADES,
   TARGET_EXAMS,
 } from './components/AuthComponents';
@@ -210,13 +210,24 @@ function SignupView({ onBack, onSuccess }: any) {
   const [step, setStep] = useState(1);
   const [data, setData] = useState({
     email: '', password: '', name: '',
-    state: '', district: '',
+    stateId: '', district: '',
     school: '', grade: '', targetExam: '',
   });
   const [err, setErr] = useState<any>({});
   const [loading, setLoading] = useState(false);
+  const [states, setStates] = useState<State[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
   const setAuth = useAuthStore(s => s.setAuth);
   const TOTAL = 4;
+
+  useEffect(() => {
+    locationApi.getStates().then(setStates).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!data.stateId) { setDistricts([]); return; }
+    locationApi.getDistricts(data.stateId).then(setDistricts).catch(() => {});
+  }, [data.stateId]);
 
   const set = (k: string, v: string) => setData(d => ({ ...d, [k]: v }));
 
@@ -227,7 +238,7 @@ function SignupView({ onBack, onSuccess }: any) {
       if (!data.password || strengthOf(data.password).score < 2) e.password = 'Password is too weak';
     }
     if (step === 2 && !data.name.trim()) e.name = 'Name is required';
-    if (step === 3 && (!data.state || !data.district)) e.location = 'Location is required';
+    if (step === 3 && (!data.stateId || !data.district)) e.location = 'Location is required';
 
     if (Object.keys(e).length) { setErr(e); return; }
     setErr({});
@@ -237,7 +248,8 @@ function SignupView({ onBack, onSuccess }: any) {
     } else {
       setLoading(true);
       try {
-        const tokens = await authApi.signup(data);
+        const selectedState = states.find(s => s.id === data.stateId);
+        const tokens = await authApi.signup({ ...data, state: selectedState?.name ?? '' });
         const user = await authApi.getMe(tokens.accessToken);
         setAuth(user, tokens.accessToken);
         toast.success('Welcome to oneMark!');
@@ -289,8 +301,8 @@ function SignupView({ onBack, onSuccess }: any) {
           <div className="view-in">
             <h1 className="text-[22px] font-semibold tracking-tight">Where are you <span className="font-serif italic font-normal">based?</span></h1>
             <div className="mt-6 space-y-4">
-              <Field label="State"><Select icon={<I.pin/>} value={data.state} onChange={(e:any) => { set('state', e.target.value); set('district', ''); }} options={STATES} placeholder="Select state" /></Field>
-              <Field label="District" error={err.location}><Select icon={<I.pin/>} value={data.district} onChange={(e:any) => set('district', e.target.value)} options={data.state ? STATES_DISTRICTS[data.state] : []} placeholder="Select district" disabled={!data.state} /></Field>
+              <Field label="State"><Select icon={<I.pin/>} value={data.stateId} onChange={(e:any) => { set('stateId', e.target.value); set('district', ''); }} options={states.map(s => s.name)} optionValues={states.map(s => s.id)} placeholder="Select state" /></Field>
+              <Field label="District" error={err.location}><Select icon={<I.pin/>} value={data.district} onChange={(e:any) => set('district', e.target.value)} options={districts.map(d => d.name)} placeholder="Select district" disabled={!data.stateId} /></Field>
             </div>
           </div>
         )}

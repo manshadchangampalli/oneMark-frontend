@@ -122,7 +122,7 @@ export function PasswordInput({ value, onChange, placeholder = '•••••�
   );
 }
 
-export function Select({ icon, value, onChange, placeholder, options, disabled }: any) {
+export function Select({ icon, value, onChange, placeholder, options, optionValues, disabled }: any) {
   return (
     <div className={clsx(
       'flex items-center gap-2.5 h-12 px-3.5 rounded-xl2 border bg-surface dark:bg-surface-dark transition-colors relative',
@@ -140,8 +140,8 @@ export function Select({ icon, value, onChange, placeholder, options, disabled }
         )}
       >
         <option value="" disabled>{placeholder}</option>
-        {options.map((o: any) => (
-          <option key={typeof o === 'string' ? o : o.id || o.value} value={typeof o === 'string' ? o : o.id || o.value}>
+        {options.map((o: any, i: number) => (
+          <option key={optionValues ? optionValues[i] : o} value={optionValues ? optionValues[i] : o}>
             {typeof o === 'string' ? o : o.label}
           </option>
         ))}
