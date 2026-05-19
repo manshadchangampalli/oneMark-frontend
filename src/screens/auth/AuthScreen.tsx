@@ -226,6 +226,7 @@ function SignupView({ onBack, onSuccess }: any) {
     }
     if (step === 2 && !data.name.trim()) e.name = 'Name is required';
     if (step === 3 && (!data.stateId || !data.district)) e.location = 'Location is required';
+    if (step === 4 && !data.targetExam) e.targetExam = 'Please select your target exam';
 
     if (Object.keys(e).length) { setErr(e); return; }
     setErr({});
@@ -298,7 +299,7 @@ function SignupView({ onBack, onSuccess }: any) {
             <div className="mt-6 space-y-4">
               <Field label="School or institute" optional><TextInput icon={<I.school/>} value={data.school} onChange={(e:any) => set('school', e.target.value)} /></Field>
               <Field label="Current grade" optional><Select value={data.grade} onChange={(e:any) => set('grade', e.target.value)} options={GRADES} placeholder="Select grade" /></Field>
-              <Field label="Target exam" optional>
+              <Field label="Target exam" error={err.targetExam}>
                 <div className="grid grid-cols-2 gap-2">
                   {exams.map(ex => (
                     <button
