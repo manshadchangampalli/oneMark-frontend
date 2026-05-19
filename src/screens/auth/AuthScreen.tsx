@@ -156,7 +156,7 @@ function LoginView({ onBack, onSignup, onSuccess }: any) {
         const user = await authApi.getMe(tokens.accessToken);
         setAuth(user, tokens.accessToken);
         toast.success('Logged in successfully!');
-        onSuccess(user);
+        onSuccess();
       },
       onError: (error: any) => {
         const msg = error.response?.data?.message || 'Login failed';
@@ -240,7 +240,7 @@ function SignupView({ onBack, onSuccess }: any) {
           const user = await authApi.getMe(tokens.accessToken);
           setAuth(user, tokens.accessToken);
           toast.success('Welcome to oneMark!');
-          onSuccess(user);
+          onSuccess();
         },
         onError: (error: any) => {
           const msg = error.response?.data?.message || 'Signup failed';
@@ -332,35 +332,19 @@ function SignupView({ onBack, onSuccess }: any) {
   );
 }
 
-function DoneView({ user }: any) {
-  const navigate = useNavigate();
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="flex-1 flex flex-col items-center justify-center px-6 text-center"
-    >
-      <div className="w-20 h-20 rounded-full bg-good-soft text-good flex items-center justify-center mb-6"><I.check size={40}/></div>
-      <h1 className="text-[24px] font-semibold tracking-tight">You're in, <span className="font-serif italic font-normal">{user?.name?.split(' ')[0]}.</span></h1>
-      <p className="mt-2 text-ink-muted text-[14px]">Your account is ready. Let's start your learning journey.</p>
-      <div className="mt-12 w-full space-y-3">
-        <Button onClick={() => navigate(ROUTES.HOME)}>Go to Dashboard</Button>
-      </div>
-    </motion.div>
-  );
-}
 
 export default function AuthScreen() {
   const [view, setView] = useState('welcome');
-  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  const handleSuccess = () => navigate(ROUTES.HOME, { replace: true });
 
   return (
     <AuthContainer>
       <AnimatePresence mode="wait">
         {view === 'welcome' && <WelcomeView key="w" onLogin={() => setView('login')} onSignup={() => setView('signup')} />}
-        {view === 'login' && <LoginView key="l" onBack={() => setView('welcome')} onSignup={() => setView('signup')} onSuccess={(u: any) => { setUser(u); setView('done'); }} />}
-        {view === 'signup' && <SignupView key="s" onBack={() => setView('welcome')} onLogin={() => setView('login')} onSuccess={(u: any) => { setUser(u); setView('done'); }} />}
-        {view === 'done' && <DoneView key="d" user={user} />}
+        {view === 'login' && <LoginView key="l" onBack={() => setView('welcome')} onSignup={() => setView('signup')} onSuccess={handleSuccess} />}
+        {view === 'signup' && <SignupView key="s" onBack={() => setView('welcome')} onLogin={() => setView('login')} onSuccess={handleSuccess} />}
       </AnimatePresence>
     </AuthContainer>
   );
