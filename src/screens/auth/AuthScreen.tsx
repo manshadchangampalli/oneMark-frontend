@@ -7,7 +7,7 @@ import { ROUTES } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth.api';
 import { useStates, useDistricts, useExams } from '@/hooks/location.hooks';
-import { useSignup, useLogin, useLogout } from './hooks/auth.hooks';
+import { useSignup, useLogin } from './hooks/auth.hooks';
 import {
   Wordmark,
   I,
@@ -19,7 +19,6 @@ import {
   StrengthMeter,
   strengthOf,
   GRADES,
-  TARGET_EXAMS,
 } from './components/AuthComponents';
 
 // ---------- Auth Container ----------
@@ -145,30 +144,26 @@ function LoginView({ onBack, onSignup, onSuccess }: any) {
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState<any>({});
-  const [loading, setLoading] = useState(false);
   const setAuth = useAuthStore(s => s.setAuth);
+  const loginMutation = useLogin();
 
   const submit = async (e: any) => {
     e.preventDefault();
     setErr({});
-    if (!email || !pw) {
-      setErr({ general: 'Please fill in all fields' });
-      return;
-    }
-    setLoading(true);
-    try {
-      const tokens = await authApi.login({ email, password: pw });
-      const user = await authApi.getMe(tokens.accessToken);
-      setAuth(user, tokens.accessToken);
-      toast.success('Logged in successfully!');
-      onSuccess(user);
-    } catch (error: any) {
-      const msg = error.response?.data?.message || 'Login failed';
-      setErr({ general: msg });
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
+    if (!email || !pw) { setErr({ general: 'Please fill in all fields' }); return; }
+    loginMutation.mutate({ email, password: pw }, {
+      onSuccess: async (tokens) => {
+        const user = await authApi.getMe(tokens.accessToken);
+        setAuth(user, tokens.accessToken);
+        toast.success('Logged in successfully!');
+        onSuccess(user);
+      },
+      onError: (error: any) => {
+        const msg = error.response?.data?.message || 'Login failed';
+        setErr({ general: msg });
+        toast.error(msg);
+      },
+    });
   };
 
   return (
@@ -195,7 +190,7 @@ function LoginView({ onBack, onSignup, onSuccess }: any) {
         </div>
         <div className="flex-1" />
         <div className="space-y-3 pb-12 pt-6">
-          <Button variant="primary" type="submit" loading={loading}>Sign in</Button>
+          <Button variant="primary" type="submit" loading={loginMutation.isPending}>Sign in</Button>
           <Button variant="google" icon={<I.google/>}>Continue with Google</Button>
           <p className="text-center text-[13px] text-ink-muted dark:text-ink-muted-dark mt-3">
             New here? <button type="button" onClick={onSignup} className="font-medium text-ink dark:text-ink-dark">Create an account</button>
@@ -214,11 +209,11 @@ function SignupView({ onBack, onSuccess }: any) {
     school: '', grade: '', targetExam: '',
   });
   const [err, setErr] = useState<any>({});
-  const [loading, setLoading] = useState(false);
   const { data: states = [] } = useStates();
   const { data: districts = [] } = useDistricts(data.stateId);
   const { data: exams = [] } = useExams();
   const setAuth = useAuthStore(s => s.setAuth);
+  const signupMutation = useSignup();
   const TOTAL = 4;
 
   const set = (k: string, v: string) => setData(d => ({ ...d, [k]: v }));
@@ -238,21 +233,20 @@ function SignupView({ onBack, onSuccess }: any) {
     if (step < TOTAL) {
       setStep(step + 1);
     } else {
-      setLoading(true);
-      try {
-        const selectedState = states.find(s => s.id === data.stateId);
-        const tokens = await authApi.signup({ ...data, state: selectedState?.name ?? '' });
-        const user = await authApi.getMe(tokens.accessToken);
-        setAuth(user, tokens.accessToken);
-        toast.success('Welcome to oneMark!');
-        onSuccess(user);
-      } catch (error: any) {
-        const msg = error.response?.data?.message || 'Signup failed';
-        setErr({ general: msg });
-        toast.error(msg);
-      } finally {
-        setLoading(false);
-      }
+      const selectedState = states.find(s => s.id === data.stateId);
+      signupMutation.mutate({ ...data, state: selectedState?.name ?? '' }, {
+        onSuccess: async (tokens) => {
+          const user = await authApi.getMe(tokens.accessToken);
+          setAuth(user, tokens.accessToken);
+          toast.success('Welcome to oneMark!');
+          onSuccess(user);
+        },
+        onError: (error: any) => {
+          const msg = error.response?.data?.message || 'Signup failed';
+          setErr({ general: msg });
+          toast.error(msg);
+        },
+      });
     }
   };
 
@@ -319,7 +313,7 @@ function SignupView({ onBack, onSuccess }: any) {
         )}
       </div>
       <div className="px-6 pb-12 pt-4 border-t border-line dark:border-line-dark">
-        <Button variant="primary" onClick={next} loading={loading}>{step === TOTAL ? 'Complete' : 'Continue'}</Button>
+        <Button variant="primary" onClick={next} loading={signupMutation.isPending}>{step === TOTAL ? 'Complete' : 'Continue'}</Button>
         {err.general && <p className="text-bad text-[12px] text-center mt-2">{err.general}</p>}
       </div>
     </motion.div>
