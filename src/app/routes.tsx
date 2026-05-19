@@ -9,6 +9,11 @@ function ProtectedRoute() {
   return isAuthenticated ? <Outlet /> : <Navigate to={ROUTES.AUTH} replace />;
 }
 
+function PublicRoute() {
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  return isAuthenticated ? <Navigate to={ROUTES.HOME} replace /> : <Outlet />;
+}
+
 const Home = lazy(() => import('@/screens/home/Home'));
 const Practice = lazy(() => import('@/screens/practice/Practice'));
 const Question = lazy(() => import('@/screens/question/Question'));
@@ -54,7 +59,12 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: 'auth',
-    element: <Suspense fallback={<Loading />}><Auth /></Suspense>,
+    element: <PublicRoute />,
+    children: [
+      {
+        path: 'auth',
+        element: <Suspense fallback={<Loading />}><Auth /></Suspense>,
+      },
+    ],
   },
 ]);
