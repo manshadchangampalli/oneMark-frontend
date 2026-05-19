@@ -25,11 +25,11 @@ import {
 // ---------- Auth Container ----------
 function AuthContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-0 sm:p-8 bg-surface dark:bg-surface-dark">
+    <div className="min-h-dvh w-full flex items-center justify-center p-0 sm:p-8 bg-surface dark:bg-surface-dark">
       <div className="
         w-full sm:max-w-[440px] sm:rounded-2xl sm:border sm:border-line sm:dark:border-line-dark sm:shadow-lg
         bg-paper dark:bg-paper-dark text-ink dark:text-ink-dark
-        h-screen sm:h-auto sm:min-h-[640px] flex flex-col overflow-hidden relative
+        h-dvh sm:h-auto sm:min-h-[640px] flex flex-col overflow-hidden relative
       ">
         {children}
       </div>
