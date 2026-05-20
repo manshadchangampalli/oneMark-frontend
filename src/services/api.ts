@@ -7,8 +7,11 @@ export const ApiRoute = {
   REFRESH: '/auth/refresh',
 
   // Location
-  STATES: '/location/states',
-  EXAMS:  '/exams',
+  STATES:           '/location/states',
+  EXAMS:            '/exams',
+
+  // Daily challenge
+  DAILY_CHALLENGE:  '/daily-challenge',
 } as const;
 
 export type ApiRoute = typeof ApiRoute[keyof typeof ApiRoute];

@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, CalendarClock, ChevronRight, ArrowRight, BookOpen, Trophy, Flame } from 'lucide-react';
+import { Users, CalendarClock, ChevronRight, ArrowRight, BookOpen, Trophy, Flame, CheckCircle2 } from 'lucide-react';
 import { Card, Button, SectionHeader, Pill, ProgressRing, Mascot } from '@/components/ui';
-import { TOPICS, RECOMMENDED, DAILY_Q, SUBJECTS, ROUTES } from '@/constants';
+import { TOPICS, RECOMMENDED, SUBJECTS, ROUTES } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useDailyChallenge } from './hooks/home.hooks';
 import { StreakCard } from './components';
 
 function greeting() {
@@ -20,6 +21,7 @@ export default function Home() {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const firstName = user?.name?.split(' ')[0] ?? 'there';
+  const { data: dailyChallenge, isLoading: dcLoading } = useDailyChallenge();
 
   return (
     <div className="view-in pb-6 lg:pb-0">
@@ -58,27 +60,58 @@ export default function Home() {
           <div className="px-5 lg:px-0 mb-5">
             <SectionHeader eyebrow="Daily challenge" title="One question, every day" />
             <Card padded={false} className="overflow-hidden">
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Pill tone="accent">{DAILY_Q.subject}</Pill>
-                  <Pill tone="warn">{DAILY_Q.difficulty}</Pill>
-                  <span className="ml-auto font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">+50 XP</span>
+              {dcLoading ? (
+                <div className="p-5 space-y-3 animate-pulse">
+                  <div className="flex gap-2">
+                    <div className="h-5 w-20 rounded-full bg-line dark:bg-line-dark" />
+                    <div className="h-5 w-16 rounded-full bg-line dark:bg-line-dark" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-full rounded bg-line dark:bg-line-dark" />
+                    <div className="h-4 w-4/5 rounded bg-line dark:bg-line-dark" />
+                    <div className="h-4 w-3/5 rounded bg-line dark:bg-line-dark" />
+                  </div>
                 </div>
-                <p className="font-serif text-[16.5px] leading-snug text-ink dark:text-ink-dark">
-                  A projectile is launched from level ground with speed{' '}
-                  <span className="font-mono text-[14.5px]">20 m/s</span> at{' '}
-                  <span className="font-mono text-[14.5px]">60°</span>. What is its <em>horizontal range</em>?
-                </p>
-              </div>
-              <div className="flex items-center justify-between border-t border-line dark:border-line-dark px-5 py-3">
-                <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark inline-flex items-center gap-1.5">
-                  <Users size={13} />
-                  <span><span className="font-mono tab-num">2,148</span> solved today</span>
+              ) : dailyChallenge ? (
+                <>
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Pill tone="accent">{dailyChallenge.question.difficulty}</Pill>
+                      {dailyChallenge.myAttempt && (
+                        <Pill tone="good">Solved</Pill>
+                      )}
+                      <span className="ml-auto font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">
+                        +{dailyChallenge.question.xpReward} XP
+                      </span>
+                    </div>
+                    <p className="font-serif text-[16.5px] leading-snug text-ink dark:text-ink-dark">
+                      {dailyChallenge.question.revision.prompt}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-line dark:border-line-dark px-5 py-3">
+                    <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark inline-flex items-center gap-1.5">
+                      <Users size={13} />
+                      <span>
+                        <span className="font-mono tab-num">{dailyChallenge.totalSolvers.toLocaleString()}</span> solved today
+                      </span>
+                    </div>
+                    {dailyChallenge.myAttempt ? (
+                      <div className="inline-flex items-center gap-1.5 text-[13px] text-good font-medium">
+                        <CheckCircle2 size={15} />
+                        Done
+                      </div>
+                    ) : (
+                      <Button iconRight={ArrowRight} onClick={() => navigate(ROUTES.QUESTION)}>
+                        Solve now
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="p-5 text-[14px] text-ink-muted dark:text-ink-muted-dark">
+                  No challenge available today.
                 </div>
-                <Button iconRight={ArrowRight} onClick={() => navigate(ROUTES.QUESTION)}>
-                  Solve now
-                </Button>
-              </div>
+              )}
             </Card>
           </div>
 
