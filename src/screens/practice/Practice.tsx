@@ -4,6 +4,8 @@ import { Zap, Timer, Crosshair, ArrowUpRight, BarChart2 } from 'lucide-react';
 import { Card, Chip, Segmented, SectionHeader } from '@/components/ui';
 import { SUBJECTS, RECENT_ATTEMPTS, ROUTES } from '@/constants';
 import { cn } from '@/utils';
+import { practiceApi } from '@/api/practice.api';
+import type { CreateSessionDto } from '@/api/practice.api';
 
 type Tone = 'accent' | 'warn' | 'good';
 
@@ -43,6 +45,25 @@ export default function Practice() {
   const navigate = useNavigate();
   const [subject, setSubject] = useState('all');
   const [difficulty, setDifficulty] = useState('mixed');
+  const [starting, setStarting] = useState<string | null>(null);
+  const [startError, setStartError] = useState(false);
+
+  async function startSession(mode: 'quick' | 'drill') {
+    setStarting(mode);
+    setStartError(false);
+    try {
+      const dto: CreateSessionDto = {
+        mode,
+        difficulty: difficulty as CreateSessionDto['difficulty'],
+        ...(subject !== 'all' ? { subjectId: subject } : {}),
+      };
+      const data = await practiceApi.createSession(dto);
+      navigate(`/practice/sessions/${data.session.id}`, { state: data });
+    } catch {
+      setStartError(true);
+      setStarting(null);
+    }
+  }
 
   return (
     <div className="view-in pb-6 lg:pb-0">
@@ -82,24 +103,40 @@ export default function Practice() {
             </div>
 
             {/* Mode cards */}
+            {startError && (
+              <p className="mb-3 text-[13px] text-bad text-center">
+                Couldn't start session. Check your connection and try again.
+              </p>
+            )}
             <div className="space-y-3">
-              {MODES.map((m) => (
-                <Card key={m.id} padded={false} onClick={m.id === 'quick' ? () => navigate(ROUTES.QUESTION) : () => {}}>
-                  <div className="p-5 flex items-start gap-4">
-                    <div className={cn('shrink-0 w-12 h-12 rounded-xl2 flex items-center justify-center', iconBg[m.tone])}>
-                      <m.Icon size={22} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <div className="text-[16px] font-semibold text-ink dark:text-ink-dark tracking-tight">{m.title}</div>
-                        <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">{m.meta}</span>
+              {MODES.map((m) => {
+                const isLoading = starting === m.id;
+                const clickable = m.id === 'quick' || m.id === 'drill';
+                return (
+                  <Card
+                    key={m.id}
+                    padded={false}
+                    onClick={clickable && !starting ? () => startSession(m.id as 'quick' | 'drill') : undefined}
+                    className={cn(!clickable && 'opacity-50 cursor-not-allowed')}
+                  >
+                    <div className="p-5 flex items-start gap-4">
+                      <div className={cn('shrink-0 w-12 h-12 rounded-xl2 flex items-center justify-center', iconBg[m.tone])}>
+                        <m.Icon size={22} />
                       </div>
-                      <div className="text-[13px] text-ink-muted dark:text-ink-muted-dark mt-0.5">{m.desc}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="text-[16px] font-semibold text-ink dark:text-ink-dark tracking-tight">{m.title}</div>
+                          <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">{m.meta}</span>
+                        </div>
+                        <div className="text-[13px] text-ink-muted dark:text-ink-muted-dark mt-0.5">
+                          {isLoading ? 'Starting…' : m.desc}
+                        </div>
+                      </div>
+                      <ArrowUpRight size={16} className="text-ink-muted dark:text-ink-muted-dark mt-1" />
                     </div>
-                    <ArrowUpRight size={16} className="text-ink-muted dark:text-ink-muted-dark mt-1" />
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Recent attempts — mobile only */}

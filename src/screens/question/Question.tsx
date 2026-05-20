@@ -6,11 +6,10 @@ import { ROUTES } from '@/constants';
 import { cn } from '@/utils';
 import { useDailyChallenge, useSubmitDailyChallenge } from '@/screens/home/hooks/home.hooks';
 import { dailyChallengeApi } from '@/api/daily-challenge.api';
-import type { DailyChallenge, SubmitAttemptResult } from '@/api/daily-challenge.api';
+import type { SubmitAttemptResult } from '@/api/daily-challenge.api';
 import { authApi } from '@/api/auth.api';
 import { useAuthStore } from '@/store/useAuthStore';
-
-type Tab = 'official' | 'community';
+import { ExplanationPanel } from './components';
 
 export default function Question() {
   const navigate = useNavigate();
@@ -21,7 +20,6 @@ export default function Question() {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitAttemptResult | null>(null);
-  const [tab, setTab] = useState<Tab>('official');
   const [bookmarked, setBookmarked] = useState(false);
   const [seconds, setSeconds] = useState(0);
 
@@ -64,6 +62,11 @@ export default function Question() {
   // correctLabel comes from the submit response (fresh attempt) or the refetched dc (already attempted)
   const correctLabel = submitResult?.correctOptionLabel ?? dc?.question.revision.correctOptionLabel;
   const got = submitted && !!correctLabel && selected === correctLabel;
+  const explanationSteps = (
+    submitResult?.officialExplanation?.steps ??
+    dc?.question.revision.officialExplanation?.steps ??
+    []
+  ) as string[];
 
   function handleSubmit() {
     if (!selected || !dc) return;
@@ -309,12 +312,12 @@ export default function Question() {
           )}
 
           <div className="hidden lg:block">
-            <ExplanationPanel dc={dc} submitResult={submitResult} submitted={submitted} tab={tab} setTab={setTab} />
+            <ExplanationPanel submitted={submitted} steps={explanationSteps} />
           </div>
 
           {submitted && (
             <div className="lg:hidden px-5 mt-3 pb-32 reveal-in">
-              <ExplanationPanel dc={dc} submitResult={submitResult} submitted={submitted} tab={tab} setTab={setTab} />
+              <ExplanationPanel submitted={submitted} steps={explanationSteps} />
             </div>
           )}
 
@@ -363,84 +366,3 @@ export default function Question() {
   );
 }
 
-function ExplanationPanel({
-  dc,
-  submitResult,
-  submitted,
-  tab,
-  setTab,
-}: {
-  dc: DailyChallenge;
-  submitResult: SubmitAttemptResult | null;
-  submitted: boolean;
-  tab: Tab;
-  setTab: (t: Tab) => void;
-}) {
-  const tabs: { id: Tab; label: string }[] = [
-    { id: 'official',  label: 'Official' },
-    { id: 'community', label: 'Community' },
-  ];
-
-  if (!submitted) {
-    return (
-      <Card>
-        <div className="text-[13px] text-ink-muted dark:text-ink-muted-dark text-center py-6 font-serif italic">
-          Submit your answer to see the explanation.
-        </div>
-      </Card>
-    );
-  }
-
-  const steps = (
-    submitResult?.officialExplanation?.steps ??
-    dc.question.revision.officialExplanation?.steps ??
-    []
-  ) as string[];
-
-  return (
-    <div>
-      <div className="flex gap-1 border-b border-line dark:border-line-dark mb-4">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={cn(
-              'px-3 h-10 text-[13.5px] font-medium relative -mb-px',
-              tab === t.id
-                ? 'text-ink dark:text-ink-dark border-b-2 border-ink dark:border-ink-dark'
-                : 'text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark',
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <div className="space-y-3">
-        {tab === 'official' && (
-          <Card>
-            <div className="text-[11px] uppercase tracking-[0.14em] text-ink-muted dark:text-ink-muted-dark font-mono mb-2">Worked solution</div>
-            {steps.length > 0 ? (
-              <ol className="space-y-2.5">
-                {steps.map((line, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="font-mono text-[12px] text-ink-muted dark:text-ink-muted-dark tab-num shrink-0 mt-0.5">{i + 1}.</span>
-                    <span className="font-serif text-[15px] leading-relaxed text-ink dark:text-ink-dark">{line}</span>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className="text-[13.5px] text-ink-muted dark:text-ink-muted-dark font-serif italic">
-                No official explanation available yet.
-              </p>
-            )}
-          </Card>
-        )}
-        {tab === 'community' && (
-          <div className="text-[13.5px] text-ink-muted dark:text-ink-muted-dark text-center py-8 font-serif italic">
-            Community explanations coming soon.
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}

@@ -15,6 +15,9 @@ export const ApiRoute = {
 
   // Topics
   TOPICS_PROGRESS:  '/topics/progress',
+
+  // Practice
+  PRACTICE_SESSIONS: '/practice/sessions',
 } as const;
 
 export type ApiRoute = typeof ApiRoute[keyof typeof ApiRoute];
