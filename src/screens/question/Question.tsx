@@ -5,6 +5,7 @@ import { Card, Button, Pill, Avatar } from '@/components/ui';
 import { ROUTES } from '@/constants';
 import { cn } from '@/utils';
 import { useDailyChallenge, useSubmitDailyChallenge } from '@/screens/home/hooks/home.hooks';
+import { dailyChallengeApi } from '@/api/daily-challenge.api';
 import type { DailyChallenge, SubmitAttemptResult } from '@/api/daily-challenge.api';
 
 type Tab = 'official' | 'community';
@@ -19,6 +20,23 @@ export default function Question() {
   const [tab, setTab] = useState<Tab>('official');
   const [bookmarked, setBookmarked] = useState(false);
   const [seconds, setSeconds] = useState(0);
+
+  // Record start time in DB (idempotent — won't overwrite original startedAt)
+  // and seed the timer from the persisted startedAt so it survives refreshes
+  useEffect(() => {
+    if (!dc || dc.myAttempt) return; // don't record start if already attempted
+    dailyChallengeApi.recordStart().then(({ startedAt }) => {
+      const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+      setSeconds(Math.max(0, elapsed));
+    });
+  }, [dc?.id]);
+
+  // Seed timer from startedAt returned on initial GET (covers page refresh)
+  useEffect(() => {
+    if (!dc?.startedAt || dc.myAttempt) return;
+    const elapsed = Math.floor((Date.now() - new Date(dc.startedAt).getTime()) / 1000);
+    setSeconds(Math.max(0, elapsed));
+  }, [dc?.startedAt]);
 
   // If the user already attempted today, pre-populate state from the API
   useEffect(() => {

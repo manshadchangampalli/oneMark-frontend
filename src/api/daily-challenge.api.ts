@@ -41,6 +41,7 @@ export interface DailyChallenge {
   totalSolvers: number;
   question: DailyChallengeQuestion;
   myAttempt: MyAttempt | null;
+  startedAt: string | null; // ISO timestamp of when user first opened the question
 }
 
 export interface SubmitAttemptDto {
@@ -58,6 +59,12 @@ export interface SubmitAttemptResult {
 export const dailyChallengeApi = {
   getToday: async (): Promise<DailyChallenge> => {
     const res = await apiClient.get<DailyChallenge>(ApiRoute.DAILY_CHALLENGE);
+    return res.data;
+  },
+  recordStart: async (): Promise<{ startedAt: string }> => {
+    const res = await apiClient.post<{ startedAt: string }>(
+      `${ApiRoute.DAILY_CHALLENGE}/start`,
+    );
     return res.data;
   },
   submitAttempt: async (dto: SubmitAttemptDto): Promise<SubmitAttemptResult> => {
