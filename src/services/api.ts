@@ -12,6 +12,9 @@ export const ApiRoute = {
 
   // Daily challenge
   DAILY_CHALLENGE:  '/daily-challenge',
+
+  // Topics
+  TOPICS_PROGRESS:  '/topics/progress',
 } as const;
 
 export type ApiRoute = typeof ApiRoute[keyof typeof ApiRoute];

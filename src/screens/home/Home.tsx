@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { Users, CalendarClock, ChevronRight, ArrowRight, BookOpen, Trophy, Flame, CheckCircle2 } from 'lucide-react';
 import { Card, Button, SectionHeader, Pill, ProgressRing, Mascot } from '@/components/ui';
-import { TOPICS, RECOMMENDED, SUBJECTS } from '@/constants';
+import { RECOMMENDED, SUBJECTS } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useDailyChallenge } from './hooks/home.hooks';
+import { useDailyChallenge, useTopicsProgress } from './hooks/home.hooks';
 import { StreakCard } from './components';
 
 function greeting() {
@@ -22,6 +22,7 @@ export default function Home() {
   const user = useAuthStore(s => s.user);
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const { data: dailyChallenge, isLoading: dcLoading } = useDailyChallenge();
+  const { data: topicsProgress = [], isLoading: topicsLoading } = useTopicsProgress();
 
   const totalAttempts = user?.totalAttempts ?? 0;
   const totalCorrect  = user?.totalCorrect ?? 0;
@@ -124,29 +125,52 @@ export default function Home() {
           {/* Continue learning */}
           <div className="px-5 lg:px-0 mb-5">
             <SectionHeader eyebrow="In progress" title="Continue learning" action="See all" />
-            <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 lg:mx-0 lg:px-0 pb-1 lg:grid lg:grid-cols-2">
-              {TOPICS.map((t) => {
-                const pct = Math.round((t.done / t.total) * 100);
-                return (
-                  <Card key={t.id} className="shrink-0 w-[220px] lg:w-auto" padded={false}>
-                    <div className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="text-[10.5px] uppercase tracking-[0.12em] text-ink-muted dark:text-ink-muted-dark font-mono">
-                          {t.subject}
-                        </div>
-                        <ProgressRing value={pct} size={36} stroke={3} color={t.color} />
+            {topicsLoading ? (
+              <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 lg:mx-0 lg:px-0 pb-1 lg:grid lg:grid-cols-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <Card key={i} className="shrink-0 w-[220px] lg:w-auto" padded={false}>
+                    <div className="p-4 space-y-3 animate-pulse">
+                      <div className="flex justify-between">
+                        <div className="h-3 w-20 rounded bg-line dark:bg-line-dark" />
+                        <div className="h-9 w-9 rounded-full bg-line dark:bg-line-dark" />
                       </div>
-                      <div className="mt-2 text-[15px] font-medium text-ink dark:text-ink-dark leading-tight">{t.title}</div>
-                      <div className="mt-3 flex items-baseline gap-1.5">
-                        <span className="font-mono text-[13px] text-ink dark:text-ink-dark tab-num">{t.done}</span>
-                        <span className="font-mono text-[12px] text-ink-muted dark:text-ink-muted-dark tab-num">/ {t.total}</span>
-                        <span className="ml-auto font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">{pct}%</span>
-                      </div>
+                      <div className="h-4 w-28 rounded bg-line dark:bg-line-dark" />
+                      <div className="h-3 w-full rounded bg-line dark:bg-line-dark" />
                     </div>
                   </Card>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            ) : topicsProgress.length === 0 ? (
+              <Card>
+                <p className="text-[14px] text-ink-muted dark:text-ink-muted-dark text-center py-2">
+                  Solve your first question to track progress here.
+                </p>
+              </Card>
+            ) : (
+              <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 lg:mx-0 lg:px-0 pb-1 lg:grid lg:grid-cols-2">
+                {topicsProgress.map((t) => {
+                  const pct = t.total > 0 ? Math.round((t.attempted / t.total) * 100) : 0;
+                  return (
+                    <Card key={t.topicId} className="shrink-0 w-[220px] lg:w-auto" padded={false}>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="text-[10.5px] uppercase tracking-[0.12em] text-ink-muted dark:text-ink-muted-dark font-mono">
+                            {t.subject}
+                          </div>
+                          <ProgressRing value={pct} size={36} stroke={3} color={t.color} />
+                        </div>
+                        <div className="mt-2 text-[15px] font-medium text-ink dark:text-ink-dark leading-tight">{t.topic}</div>
+                        <div className="mt-3 flex items-baseline gap-1.5">
+                          <span className="font-mono text-[13px] text-ink dark:text-ink-dark tab-num">{t.attempted}</span>
+                          <span className="font-mono text-[12px] text-ink-muted dark:text-ink-muted-dark tab-num">/ {t.total}</span>
+                          <span className="ml-auto font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">{pct}%</span>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Recommended */}
