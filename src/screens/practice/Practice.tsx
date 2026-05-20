@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Timer, Crosshair, ArrowUpRight, BarChart2 } from 'lucide-react';
 import { Card, Chip, Segmented, SectionHeader } from '@/components/ui';
-import { SUBJECTS, RECENT_ATTEMPTS, ROUTES } from '@/constants';
+import { SUBJECTS, RECENT_ATTEMPTS } from '@/constants';
 import { cn } from '@/utils';
 import { practiceApi } from '@/api/practice.api';
 import type { CreateSessionDto } from '@/api/practice.api';
