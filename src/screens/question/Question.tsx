@@ -305,7 +305,7 @@ export default function Question() {
                     { label: 'Subject',   value: q.subject ?? '—' },
                     { label: 'Topic',     value: q.topic ?? '—' },
                     { label: 'Solved by', value: `${dc.totalSolvers.toLocaleString()} today` },
-                    { label: 'XP reward', value: `+${q.xpReward} XP` },
+                    { label: 'XP reward', value: `+${q.xpReward + dc.dailyBonus} XP` },
                   ].map((r) => (
                     <div key={r.label} className="flex items-center justify-between">
                       <span className="text-ink-muted dark:text-ink-muted-dark">{r.label}</span>

@@ -39,9 +39,10 @@ export interface DailyChallenge {
   id: string;
   date: string;
   totalSolvers: number;
+  dailyBonus: number;
   question: DailyChallengeQuestion;
   myAttempt: MyAttempt | null;
-  startedAt: string | null; // ISO timestamp of when user first opened the question
+  startedAt: string | null;
 }
 
 export interface SubmitAttemptDto {

@@ -81,7 +81,7 @@ export default function Home() {
                         <Pill tone="good">Solved</Pill>
                       )}
                       <span className="ml-auto font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">
-                        +{dailyChallenge.question.xpReward} XP
+                        +{dailyChallenge.question.xpReward + dailyChallenge.dailyBonus} XP
                       </span>
                     </div>
                     <p className="font-serif text-[16.5px] leading-snug text-ink dark:text-ink-dark">
