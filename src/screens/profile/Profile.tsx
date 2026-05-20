@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { STUDY_BUDDIES, ACHIEVEMENTS } from '@/constants';
 import { useAppStore } from '@/store';
 import { useAuthStore } from '@/store/useAuthStore';
-import { authApi } from '@/api/auth.api';
+import { useLogout } from '@/screens/auth/hooks/auth.hooks';
 import { SettingRow } from './components';
 import { cn } from '@/utils';
 import { Medal, Flame, Trophy, Moon as MoonIcon, MessageSquare, Lock } from 'lucide-react';
@@ -22,28 +22,24 @@ const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
 
 export default function Profile() {
   const { isDark, setDark, notificationsEnabled, toggleNotifications } = useAppStore();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
+  const logoutMutation = useLogout();
   const [notifyFreq, setNotifyFreq] = useState('daily');
   const [theme, setTheme] = useState(isDark ? 'dark' : 'light');
-  const [signingOut, setSigningOut] = useState(false);
 
   function handleThemeChange(value: string) {
     setTheme(value);
     setDark(value === 'dark');
   }
 
-  async function handleSignOut() {
-    setSigningOut(true);
-    try {
-      await authApi.logout();
-    } catch {
-      // ignore — clear local state regardless
-    } finally {
-      logout();
-      navigate(ROUTES.AUTH, { replace: true });
-      toast.success('Signed out');
-    }
+  function handleSignOut() {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => {
+        navigate(ROUTES.AUTH, { replace: true });
+        toast.success('Signed out');
+      },
+    });
   }
 
   return (
@@ -237,10 +233,10 @@ export default function Profile() {
 
           <button
             onClick={handleSignOut}
-            disabled={signingOut}
+            disabled={logoutMutation.isPending}
             className="w-full h-11 rounded-lg border border-line dark:border-line-dark text-[13.5px] font-medium text-bad hover:bg-bad/5 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           >
-            <LogOut size={15} /> {signingOut ? 'Signing out…' : 'Sign out'}
+            <LogOut size={15} /> {logoutMutation.isPending ? 'Signing out…' : 'Sign out'}
           </button>
 
           <div className="text-center text-[11px] text-ink-muted dark:text-ink-muted-dark font-mono pb-2">
