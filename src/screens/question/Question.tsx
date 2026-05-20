@@ -7,6 +7,8 @@ import { cn } from '@/utils';
 import { useDailyChallenge, useSubmitDailyChallenge } from '@/screens/home/hooks/home.hooks';
 import { dailyChallengeApi } from '@/api/daily-challenge.api';
 import type { DailyChallenge, SubmitAttemptResult } from '@/api/daily-challenge.api';
+import { authApi } from '@/api/auth.api';
+import { useAuthStore } from '@/store/useAuthStore';
 
 type Tab = 'official' | 'community';
 
@@ -14,6 +16,8 @@ export default function Question() {
   const navigate = useNavigate();
   const { data: dc, isLoading } = useDailyChallenge();
   const submitMutation = useSubmitDailyChallenge();
+  const setAuth = useAuthStore(s => s.setAuth);
+  const accessToken = useAuthStore(s => s.accessToken);
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitAttemptResult | null>(null);
@@ -71,6 +75,10 @@ export default function Question() {
         onSuccess: (result) => {
           setSubmitResult(result);
           setSubmitted(true);
+          // Refresh user counters (totalAttempts, totalCorrect, totalXp) in the store
+          authApi.getMe(accessToken ?? undefined).then((freshUser) => {
+            setAuth(freshUser, accessToken!);
+          }).catch(() => {/* non-critical */});
         },
       },
     );

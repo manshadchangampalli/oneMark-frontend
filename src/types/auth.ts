@@ -10,6 +10,9 @@ export type User = {
   state?: string;
   district?: string;
   role: 'student' | 'admin';
+  totalXp: number;
+  totalAttempts: number;
+  totalCorrect: number;
 }
 
 export type AuthResponse = {

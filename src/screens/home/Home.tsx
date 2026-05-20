@@ -23,6 +23,10 @@ export default function Home() {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const { data: dailyChallenge, isLoading: dcLoading } = useDailyChallenge();
 
+  const totalAttempts = user?.totalAttempts ?? 0;
+  const totalCorrect  = user?.totalCorrect ?? 0;
+  const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
   return (
     <div className="view-in pb-6 lg:pb-0">
       {/* Mobile pull indicator */}
@@ -45,7 +49,9 @@ export default function Home() {
                 <span className="font-serif italic font-normal">{firstName}.</span>
               </h1>
               <p className="hidden lg:block mt-2 text-[14px] text-ink-muted dark:text-ink-muted-dark">
-                You've solved <span className="font-mono font-medium text-ink dark:text-ink-dark">1,284</span> questions · 23-day streak · <span className="text-good font-medium">keep going!</span>
+                You've solved <span className="font-mono font-medium text-ink dark:text-ink-dark">{totalAttempts.toLocaleString()}</span> questions
+                {accuracy > 0 && <> · <span className="font-mono font-medium text-ink dark:text-ink-dark">{accuracy}%</span> accuracy</>}
+                {totalAttempts > 0 && <> · <span className="text-good font-medium">keep going!</span></>}
               </p>
             </div>
             <Mascot />
@@ -180,10 +186,10 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-2 divide-x divide-y divide-line dark:divide-line-dark">
               {[
-                { label: 'Solved',   value: '1,284', icon: BookOpen, color: 'text-ink dark:text-ink-dark' },
-                { label: 'Accuracy', value: '76%',   icon: Trophy,   color: 'text-good' },
-                { label: 'Streak',   value: '23d',   icon: Flame,    color: 'text-accent' },
-                { label: 'Rank',     value: '#3',    icon: Trophy,   color: 'text-warn' },
+                { label: 'Solved',   value: totalAttempts.toLocaleString(),          icon: BookOpen, color: 'text-ink dark:text-ink-dark' },
+                { label: 'Accuracy', value: totalAttempts > 0 ? `${accuracy}%` : '—', icon: Trophy,   color: 'text-good' },
+                { label: 'Streak',   value: '23d',                                    icon: Flame,    color: 'text-accent' },
+                { label: 'XP',       value: (user?.totalXp ?? 0).toLocaleString(),    icon: Trophy,   color: 'text-warn' },
               ].map((s) => (
                 <div key={s.label} className="p-3">
                   <div className="text-[10px] uppercase tracking-[0.12em] text-ink-muted dark:text-ink-muted-dark font-mono">{s.label}</div>
