@@ -43,9 +43,28 @@ export interface DailyChallenge {
   myAttempt: MyAttempt | null;
 }
 
+export interface SubmitAttemptDto {
+  selectedOptionId: string;
+  timeSeconds?: number;
+}
+
+export interface SubmitAttemptResult {
+  isCorrect: boolean;
+  correctOptionLabel: string;
+  officialExplanation: { steps: string[] };
+  attempt: { id: string; isCorrect: boolean; xpAwarded: number };
+}
+
 export const dailyChallengeApi = {
   getToday: async (): Promise<DailyChallenge> => {
     const res = await apiClient.get<DailyChallenge>(ApiRoute.DAILY_CHALLENGE);
+    return res.data;
+  },
+  submitAttempt: async (dto: SubmitAttemptDto): Promise<SubmitAttemptResult> => {
+    const res = await apiClient.post<SubmitAttemptResult>(
+      `${ApiRoute.DAILY_CHALLENGE}/attempt`,
+      dto,
+    );
     return res.data;
   },
 };

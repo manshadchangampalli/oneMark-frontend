@@ -4,16 +4,18 @@ import { X, Bookmark, BookmarkCheck, Check, MessageSquare, ArrowRight, Users } f
 import { Card, Button, Pill, Avatar } from '@/components/ui';
 import { ROUTES } from '@/constants';
 import { cn } from '@/utils';
-import { useDailyChallenge } from '@/screens/home/hooks/home.hooks';
-import type { DailyChallenge } from '@/api/daily-challenge.api';
+import { useDailyChallenge, useSubmitDailyChallenge } from '@/screens/home/hooks/home.hooks';
+import type { DailyChallenge, SubmitAttemptResult } from '@/api/daily-challenge.api';
 
 type Tab = 'official' | 'community';
 
 export default function Question() {
   const navigate = useNavigate();
   const { data: dc, isLoading } = useDailyChallenge();
+  const submitMutation = useSubmitDailyChallenge();
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitResult, setSubmitResult] = useState<SubmitAttemptResult | null>(null);
   const [tab, setTab] = useState<Tab>('official');
   const [bookmarked, setBookmarked] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -37,8 +39,24 @@ export default function Question() {
   const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
   const ss = String(seconds % 60).padStart(2, '0');
 
-  const correctLabel = dc?.question.revision.correctOptionLabel;
-  const got = submitted && selected === correctLabel;
+  // correctLabel comes from the submit response (fresh attempt) or the refetched dc (already attempted)
+  const correctLabel = submitResult?.correctOptionLabel ?? dc?.question.revision.correctOptionLabel;
+  const got = submitted && !!correctLabel && selected === correctLabel;
+
+  function handleSubmit() {
+    if (!selected || !dc) return;
+    const optionId = dc.question.options.find((o) => o.label === selected)?.id;
+    if (!optionId) return;
+    submitMutation.mutate(
+      { selectedOptionId: optionId, timeSeconds: seconds },
+      {
+        onSuccess: (result) => {
+          setSubmitResult(result);
+          setSubmitted(true);
+        },
+      },
+    );
+  }
 
   if (isLoading || !dc) {
     return (
@@ -186,8 +204,9 @@ export default function Question() {
             {/* Submit — desktop */}
             <div className="mt-5 hidden lg:block">
               {!submitted ? (
-                <Button variant="primary" size="lg" className="w-full" disabled={!selected} onClick={() => setSubmitted(true)}>
-                  {selected ? `Submit answer ${selected}` : 'Select an option to submit'}
+                <Button variant="primary" size="lg" className="w-full" onClick={handleSubmit}
+                  disabled={!selected || submitMutation.isPending}>
+                  {submitMutation.isPending ? 'Submitting…' : selected ? `Submit answer ${selected}` : 'Select an option to submit'}
                 </Button>
               ) : (
                 <div className="flex gap-2">
@@ -240,17 +259,21 @@ export default function Question() {
                     : <>Answer was <span className="font-mono">{correctLabel}</span>. See explanation below.</>}
                 </div>
               </div>
-              {got && <span className="font-mono text-[12px] text-good tab-num">+{q.xpReward} XP</span>}
+              {got && (
+                <span className="font-mono text-[12px] text-good tab-num">
+                  +{submitResult?.attempt.xpAwarded ?? dc.myAttempt?.xpAwarded ?? q.xpReward} XP
+                </span>
+              )}
             </div>
           )}
 
           <div className="hidden lg:block">
-            <ExplanationPanel dc={dc} submitted={submitted} tab={tab} setTab={setTab} />
+            <ExplanationPanel dc={dc} submitResult={submitResult} submitted={submitted} tab={tab} setTab={setTab} />
           </div>
 
           {submitted && (
             <div className="lg:hidden px-5 mt-3 pb-32 reveal-in">
-              <ExplanationPanel dc={dc} submitted={submitted} tab={tab} setTab={setTab} />
+              <ExplanationPanel dc={dc} submitResult={submitResult} submitted={submitted} tab={tab} setTab={setTab} />
             </div>
           )}
 
@@ -301,11 +324,13 @@ export default function Question() {
 
 function ExplanationPanel({
   dc,
+  submitResult,
   submitted,
   tab,
   setTab,
 }: {
   dc: DailyChallenge;
+  submitResult: SubmitAttemptResult | null;
   submitted: boolean;
   tab: Tab;
   setTab: (t: Tab) => void;
@@ -325,7 +350,11 @@ function ExplanationPanel({
     );
   }
 
-  const steps = (dc.question.revision.officialExplanation?.steps ?? []) as string[];
+  const steps = (
+    submitResult?.officialExplanation?.steps ??
+    dc.question.revision.officialExplanation?.steps ??
+    []
+  ) as string[];
 
   return (
     <div>
