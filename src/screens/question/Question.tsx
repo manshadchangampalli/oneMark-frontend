@@ -222,10 +222,17 @@ export default function Question() {
             {/* Submit — desktop */}
             <div className="mt-5 hidden lg:block">
               {!submitted ? (
-                <Button variant="primary" size="lg" className="w-full" onClick={handleSubmit}
-                  disabled={!selected || submitMutation.isPending}>
-                  {submitMutation.isPending ? 'Submitting…' : selected ? `Submit answer ${selected}` : 'Select an option to submit'}
-                </Button>
+                <>
+                  <Button variant="primary" size="lg" className="w-full" onClick={handleSubmit}
+                    disabled={!selected || submitMutation.isPending}>
+                    {submitMutation.isPending ? 'Submitting…' : selected ? `Submit answer ${selected}` : 'Select an option to submit'}
+                  </Button>
+                  {submitMutation.isError && (
+                    <p className="mt-2 text-[12.5px] text-bad text-center">
+                      Failed to submit. Check your connection and try again.
+                    </p>
+                  )}
+                </>
               ) : (
                 <div className="flex gap-2">
                   <Button variant="secondary" size="lg" className="flex-1" icon={MessageSquare} onClick={() => {}}>
@@ -242,9 +249,17 @@ export default function Question() {
           {/* Submit — mobile sticky */}
           <div className="lg:hidden sticky bottom-0 bg-paper/95 dark:bg-paper-dark/95 backdrop-blur-sm border-t border-line dark:border-line-dark px-5 py-3">
             {!submitted ? (
-              <Button variant="primary" size="lg" className="w-full" disabled={!selected} onClick={() => setSubmitted(true)}>
-                {selected ? `Submit answer ${selected}` : 'Select an option to submit'}
-              </Button>
+              <>
+                <Button variant="primary" size="lg" className="w-full" onClick={handleSubmit}
+                  disabled={!selected || submitMutation.isPending}>
+                  {submitMutation.isPending ? 'Submitting…' : selected ? `Submit answer ${selected}` : 'Select an option to submit'}
+                </Button>
+                {submitMutation.isError && (
+                  <p className="mt-2 text-[12.5px] text-bad text-center">
+                    Failed to submit. Check your connection and try again.
+                  </p>
+                )}
+              </>
             ) : (
               <div className="flex gap-2">
                 <Button variant="secondary" size="lg" className="flex-1" icon={MessageSquare} onClick={() => {}}>
