@@ -20,6 +20,8 @@ export interface DailyChallengeRevision {
 
 export interface DailyChallengeQuestion {
   id: string;
+  subject: string | null;
+  topic: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   xpReward: number;
   revision: DailyChallengeRevision;

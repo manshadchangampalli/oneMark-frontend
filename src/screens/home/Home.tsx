@@ -101,7 +101,7 @@ export default function Home() {
                         Done
                       </div>
                     ) : (
-                      <Button iconRight={ArrowRight} onClick={() => navigate(ROUTES.QUESTION)}>
+                      <Button iconRight={ArrowRight} onClick={() => navigate(`/question/${dailyChallenge.id}`)}>
                         Solve now
                       </Button>
                     )}

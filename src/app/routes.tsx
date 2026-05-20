@@ -74,7 +74,7 @@ export const router = createBrowserRouter([
         children: [
           { path: 'today',    element: <Suspense fallback={<Loading />}><Home /></Suspense> },
           { path: 'practice', element: <Suspense fallback={<Loading />}><Practice /></Suspense> },
-          { path: 'question', element: <Suspense fallback={<Loading />}><Question /></Suspense> },
+          { path: 'question/:id', element: <Suspense fallback={<Loading />}><Question /></Suspense> },
           { path: 'progress', element: <Suspense fallback={<Loading />}><Progress /></Suspense> },
           { path: 'profile',  element: <Suspense fallback={<Loading />}><Profile /></Suspense> },
         ],
