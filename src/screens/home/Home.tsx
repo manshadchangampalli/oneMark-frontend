@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Users, CalendarClock, ChevronRight, ArrowRight, BookOpen, Trophy, Flame, CheckCircle2 } from 'lucide-react';
 import { Card, Button, SectionHeader, Pill, ProgressRing, Mascot } from '@/components/ui';
-import { TOPICS, RECOMMENDED, SUBJECTS, ROUTES } from '@/constants';
+import { TOPICS, RECOMMENDED, SUBJECTS } from '@/constants';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDailyChallenge } from './hooks/home.hooks';
 import { StreakCard } from './components';
