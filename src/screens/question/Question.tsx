@@ -18,6 +18,16 @@ export default function Question() {
   const [bookmarked, setBookmarked] = useState(false);
   const [seconds, setSeconds] = useState(0);
 
+  // If the user already attempted today, pre-populate state from the API
+  useEffect(() => {
+    if (!dc?.myAttempt) return;
+    const prevOption = dc.question.options.find(
+      (o) => o.id === dc.myAttempt!.selectedOptionId,
+    );
+    if (prevOption) setSelected(prevOption.label);
+    setSubmitted(true);
+  }, [dc]);
+
   useEffect(() => {
     if (submitted) return;
     const id = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -47,6 +57,7 @@ export default function Question() {
 
   const q = dc.question;
   const options = q.options;
+  const alreadyAttempted = !!dc.myAttempt;
 
   return (
     <div className="view-in">
@@ -71,9 +82,11 @@ export default function Question() {
             <span className="font-mono tab-num">{dc.totalSolvers.toLocaleString()}</span> solved today
           </span>
         </div>
-        <div className="font-mono text-[14px] tab-num text-ink dark:text-ink-dark px-2 py-1 rounded-md bg-paper dark:bg-paper-dark border border-line dark:border-line-dark">
-          {mm}:{ss}
-        </div>
+        {!alreadyAttempted && (
+          <div className="font-mono text-[14px] tab-num text-ink dark:text-ink-dark px-2 py-1 rounded-md bg-paper dark:bg-paper-dark border border-line dark:border-line-dark">
+            {mm}:{ss}
+          </div>
+        )}
         <button
           onClick={() => setBookmarked((b) => !b)}
           className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-ink/4 dark:hover:bg-ink-dark/5 text-ink dark:text-ink-dark"
@@ -82,7 +95,7 @@ export default function Question() {
         </button>
       </div>
 
-      <div className="lg:grid lg:grid-cols-[1fr_420px] lg:gap-8 lg:items-start">
+      <div className="lg:grid lg:grid-cols-[1fr_420px] lg:gap-8 lg:items-start lg:mt-6">
 
         {/* ── Left: question + options ── */}
         <div>
