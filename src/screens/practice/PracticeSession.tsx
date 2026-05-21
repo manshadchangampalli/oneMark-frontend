@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { X, Check, ArrowRight, Trophy } from 'lucide-react';
 import { Card, Button, Pill } from '@/components/ui';
 import { ROUTES } from '@/constants';
@@ -14,6 +14,7 @@ export default function PracticeSession() {
   const navigate = useNavigate();
   const { sessionId } = useParams<{ sessionId: string }>();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const setAuth = useAuthStore(s => s.setAuth);
   const accessToken = useAuthStore(s => s.accessToken);
 
@@ -22,8 +23,11 @@ export default function PracticeSession() {
   const [questions, setQuestions] = useState<PracticeQuestion[]>(locationState?.questions ?? []);
   const [loading, setLoading] = useState(questions.length === 0);
 
-  // Per-question state (reset on advance)
-  const [index, setIndex] = useState(0);
+  // Current question is tracked in URL (?q=N, 1-indexed) so refresh preserves position
+  const qParam = parseInt(searchParams.get('q') ?? '1', 10);
+  const index = Math.min(Math.max(0, qParam - 1), Math.max(0, questions.length - 1));
+
+  // Per-question state (restored from server data on index change)
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitAttemptResult | null>(null);
@@ -40,18 +44,49 @@ export default function PracticeSession() {
 
   // Finish state
   const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState(false);
   const [finishResult, setFinishResult] = useState<FinishResult | null>(null);
 
-  // Fallback: fetch session if navigated to directly (no router state)
+  // Fallback: fetch session if navigated to directly (no router state).
+  // Also detect if the session is already finished and jump to results.
   useEffect(() => {
     if (questions.length > 0 || !sessionId) return;
-    practiceApi.getSession(sessionId).then(data => {
-      setQuestions(data.questions);
-      setLoading(false);
-    }).catch(() => {
-      navigate(ROUTES.PRACTICE);
-    });
+    practiceApi.getSession(sessionId)
+      .then(async data => {
+        setQuestions(data.questions);
+        setLoading(false);
+        if (data.finishedAt) {
+          // Idempotent — returns the same summary
+          const result = await practiceApi.finishSession(sessionId);
+          setFinishResult(result);
+        }
+      })
+      .catch(() => navigate(ROUTES.PRACTICE));
   }, [sessionId]);
+
+  // Restore per-question state whenever index or questions change
+  useEffect(() => {
+    const q = questions[index];
+    if (!q) return;
+    setSubmitError(false);
+    setSeconds(0);
+    if (q.myStatus && q.myStatus !== 'unattempted') {
+      const opt = q.options.find(o => o.id === q.mySelectedOptionId);
+      setSelected(opt?.label ?? null);
+      setSubmitted(true);
+      setSubmitResult({
+        attempt: { id: '', isCorrect: q.myStatus === 'correct', xpAwarded: q.myXpAwarded ?? 0 },
+        isCorrect: q.myStatus === 'correct',
+        correctOptionLabel: q.revision?.correctOptionLabel ?? '',
+        officialExplanation: q.revision?.officialExplanation ?? null,
+        runningScore: 0,
+      });
+    } else {
+      setSelected(null);
+      setSubmitted(false);
+      setSubmitResult(null);
+    }
+  }, [index, questions]);
 
   if (loading) {
     return (
@@ -121,12 +156,16 @@ export default function PracticeSession() {
   if (!q) return null;
 
   const total = questions.length;
-  const correctLabel = submitResult?.correctOptionLabel ?? null;
+  const correctLabel = submitResult?.correctOptionLabel ?? q.revision?.correctOptionLabel ?? null;
   const got = submitted && !!correctLabel && selected === correctLabel;
   const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
   const ss = String(seconds % 60).padStart(2, '0');
   const isLast = index === total - 1;
-  const explanationSteps = (submitResult?.officialExplanation?.steps ?? []) as string[];
+  const explanationSteps = (
+    submitResult?.officialExplanation?.steps ??
+    q.revision?.officialExplanation?.steps ??
+    []
+  ) as string[];
 
   async function handleSubmit() {
     if (!selected || !sessionId || submitting) return;
@@ -142,6 +181,18 @@ export default function PracticeSession() {
       });
       setSubmitResult(result);
       setSubmitted(true);
+      // Persist into questions so refresh / next-prev navigation restores correctly
+      setQuestions(prev => prev.map((qq, i) => i === index ? {
+        ...qq,
+        myStatus: result.isCorrect ? 'correct' : 'incorrect',
+        mySelectedOptionId: optionId,
+        myXpAwarded: result.attempt.xpAwarded,
+        revision: qq.revision ? {
+          ...qq.revision,
+          correctOptionLabel: result.correctOptionLabel,
+          officialExplanation: result.officialExplanation,
+        } : qq.revision,
+      } : qq));
       authApi.getMe(accessToken ?? undefined).then(u => setAuth(u, accessToken!)).catch(() => {});
     } catch {
       setSubmitError(true);
@@ -153,20 +204,18 @@ export default function PracticeSession() {
   async function handleNext() {
     if (isLast) {
       setFinishing(true);
+      setFinishError(false);
       try {
         const result = await practiceApi.finishSession(sessionId!);
         setFinishResult(result);
       } catch {
+        setFinishError(true);
+      } finally {
         setFinishing(false);
       }
       return;
     }
-    setIndex(i => i + 1);
-    setSelected(null);
-    setSubmitted(false);
-    setSubmitResult(null);
-    setSubmitError(false);
-    setSeconds(0);
+    setSearchParams({ q: String(index + 2) }, { replace: false });
   }
 
   return (
@@ -287,10 +336,15 @@ export default function PracticeSession() {
                   )}
                 </>
               ) : (
-                <Button variant="primary" size="lg" className="w-full" iconRight={ArrowRight}
-                  onClick={handleNext} disabled={finishing}>
-                  {finishing ? 'Finishing…' : isLast ? 'Finish session' : 'Next question'}
-                </Button>
+                <>
+                  <Button variant="primary" size="lg" className="w-full" iconRight={ArrowRight}
+                    onClick={handleNext} disabled={finishing}>
+                    {finishing ? 'Finishing…' : isLast ? 'Finish session' : 'Next question'}
+                  </Button>
+                  {finishError && (
+                    <p className="mt-2 text-[12.5px] text-bad text-center">Couldn't finish session. Try again.</p>
+                  )}
+                </>
               )}
             </div>
           </div>

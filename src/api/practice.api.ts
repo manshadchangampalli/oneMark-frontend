@@ -14,8 +14,17 @@ export interface PracticeQuestion {
   difficulty: 'easy' | 'medium' | 'hard';
   type: string;
   xpReward: number;
-  revision: { id: string; prompt: string } | null;
+  revision: {
+    id: string;
+    prompt: string;
+    correctOptionLabel?: string;
+    officialExplanation?: { steps: string[] } | null;
+  } | null;
   options: PracticeOption[];
+  // Present on GET /practice/sessions/:id — used to restore submitted state on refresh
+  myStatus?: 'unattempted' | 'correct' | 'incorrect';
+  mySelectedOptionId?: string | null;
+  myXpAwarded?: number | null;
 }
 
 export interface PracticeSession {
@@ -63,7 +72,9 @@ export const practiceApi = {
     return data;
   },
 
-  getSession: async (sessionId: string): Promise<SessionState & { score: number; total: number; finishedAt: string | null }> => {
+  getSession: async (
+    sessionId: string,
+  ): Promise<SessionState & { score: number; total: number; finishedAt: string | null; timeSpentSec: number }> => {
     const { data } = await apiClient.get(`${ApiRoute.PRACTICE_SESSIONS}/${sessionId}`);
     return data;
   },

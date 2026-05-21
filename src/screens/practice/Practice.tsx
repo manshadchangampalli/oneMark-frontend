@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Zap, Timer, Crosshair, ArrowUpRight, BarChart2 } from 'lucide-react';
 import { Card, Chip, Segmented, SectionHeader } from '@/components/ui';
-import { SUBJECTS, RECENT_ATTEMPTS } from '@/constants';
+import { RECENT_ATTEMPTS } from '@/constants';
 import { cn } from '@/utils';
 import { practiceApi } from '@/api/practice.api';
 import type { CreateSessionDto } from '@/api/practice.api';
+import { subjectsApi } from '@/api/subjects.api';
 
 type Tone = 'accent' | 'warn' | 'good';
 
@@ -47,6 +49,11 @@ export default function Practice() {
   const [difficulty, setDifficulty] = useState('mixed');
   const [starting, setStarting] = useState<string | null>(null);
   const [startError, setStartError] = useState(false);
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: subjectsApi.list,
+    staleTime: 10 * 60 * 1000,
+  });
 
   async function startSession(mode: 'quick' | 'drill') {
     setStarting(mode);
@@ -58,7 +65,7 @@ export default function Practice() {
         ...(subject !== 'all' ? { subjectId: subject } : {}),
       };
       const data = await practiceApi.createSession(dto);
-      navigate(`/practice/sessions/${data.session.id}`, { state: data });
+      navigate(`/practice/sessions/${data.session.id}?q=1`, { state: data });
     } catch {
       setStartError(true);
       setStarting(null);
@@ -81,7 +88,7 @@ export default function Practice() {
           {/* Subject chips */}
           <div className="flex gap-2 overflow-x-auto no-scrollbar px-5 lg:px-0 pb-3">
             <Chip active={subject === 'all'} onClick={() => setSubject('all')}>All subjects</Chip>
-            {SUBJECTS.map((s) => (
+            {subjects.map((s) => (
               <Chip key={s.id} active={subject === s.id} onClick={() => setSubject(s.id)}>{s.label}</Chip>
             ))}
           </div>

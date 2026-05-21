@@ -13,6 +13,9 @@ export const ApiRoute = {
   // Daily challenge
   DAILY_CHALLENGE:  '/daily-challenge',
 
+  // Subjects
+  SUBJECTS:         '/subjects',
+
   // Topics
   TOPICS_PROGRESS:  '/topics/progress',
 
