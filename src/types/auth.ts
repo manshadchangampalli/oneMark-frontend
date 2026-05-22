@@ -13,6 +13,8 @@ export type User = {
   totalXp: number;
   totalAttempts: number;
   totalCorrect: number;
+  currentStreak?: number;
+  longestStreak?: number;
 }
 
 export type AuthResponse = {
