@@ -3,11 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Zap, Timer, Crosshair, ArrowUpRight, BarChart2 } from 'lucide-react';
 import { Card, Chip, Segmented, SectionHeader } from '@/components/ui';
-import { RECENT_ATTEMPTS } from '@/constants';
 import { cn } from '@/utils';
 import { practiceApi } from '@/api/practice.api';
-import type { CreateSessionDto } from '@/api/practice.api';
+import type { CreateSessionDto, RecentSession } from '@/api/practice.api';
 import { subjectsApi } from '@/api/subjects.api';
+
+const MODE_LABEL: Record<string, string> = {
+  quick: 'Quick Practice',
+  drill: 'Topic Drill',
+  mock:  'Mock Test',
+};
+
+function formatDuration(sec: number): string {
+  if (!sec || sec <= 0) return '—';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diffMs = Date.now() - then;
+  const day = 24 * 60 * 60 * 1000;
+  if (diffMs < 60 * 1000) return 'Just now';
+  if (diffMs < 60 * 60 * 1000) return `${Math.floor(diffMs / 60000)}m ago`;
+  if (diffMs < day) return `${Math.floor(diffMs / 3600000)}h ago`;
+  if (diffMs < 2 * day) return 'Yesterday';
+  if (diffMs < 7 * day) return `${Math.floor(diffMs / day)}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function sessionSubjectLabel(a: RecentSession): string {
+  if (a.topic && a.subject) return `${a.subject.label} · ${a.topic.label}`;
+  if (a.subject) return a.subject.label;
+  if (a.topic) return a.topic.label;
+  return 'Mixed';
+}
 
 type Tone = 'accent' | 'warn' | 'good';
 
@@ -148,7 +181,7 @@ export default function Practice() {
 
             {/* Recent attempts — mobile only */}
             <div className="mt-7 lg:hidden">
-              <SectionHeader eyebrow="History" title="Recent attempts" action="All history" />
+              <SectionHeader eyebrow="History" title="Recent attempts" action="All history" onAction={() => navigate('/practice/history')} />
               <RecentAttemptsCard />
             </div>
           </div>
@@ -209,7 +242,7 @@ export default function Practice() {
 
           {/* Recent attempts */}
           <div>
-            <SectionHeader eyebrow="History" title="Recent attempts" action="All" />
+            <SectionHeader eyebrow="History" title="Recent attempts" action="All" onAction={() => navigate('/practice/history')} />
             <RecentAttemptsCard />
           </div>
         </div>
@@ -219,26 +252,66 @@ export default function Practice() {
 }
 
 function RecentAttemptsCard() {
+  const navigate = useNavigate();
+  const { data, isLoading } = useQuery({
+    queryKey: ['practice-sessions', { limit: 5 }],
+    queryFn:  () => practiceApi.listSessions({ limit: 5 }),
+    staleTime: 30 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <Card padded={false}>
+        <div className="px-4 py-6 text-center text-[12.5px] text-ink-muted dark:text-ink-muted-dark">Loading…</div>
+      </Card>
+    );
+  }
+
+  const attempts = data?.data ?? [];
+  if (attempts.length === 0) {
+    return (
+      <Card padded={false}>
+        <div className="px-4 py-6 text-center text-[12.5px] text-ink-muted dark:text-ink-muted-dark">
+          No attempts yet. Start a practice to see your history.
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card padded={false}>
       <ul className="divide-y divide-line dark:divide-line-dark">
-        {RECENT_ATTEMPTS.map((a) => (
-          <li key={a.id} className="px-4 py-3 flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[13.5px] font-medium text-ink dark:text-ink-dark">{a.kind}</span>
-                <span className="text-[12px] text-ink-muted dark:text-ink-muted-dark truncate">· {a.subject}</span>
+        {attempts.map((a) => {
+          const kind = MODE_LABEL[a.mode] ?? a.mode;
+          const subjectLabel = sessionSubjectLabel(a);
+          const denom = a.questionCount || a.total;
+          const acc = a.accuracy ?? 0;
+          const finished = !!a.finishedAt;
+          return (
+            <li key={a.id} className="px-4 py-3 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13.5px] font-medium text-ink dark:text-ink-dark">{kind}</span>
+                  <span className="text-[12px] text-ink-muted dark:text-ink-muted-dark truncate">· {subjectLabel}</span>
+                </div>
+                <div className="mt-1 flex items-center gap-3 text-[12px] text-ink-muted dark:text-ink-muted-dark font-mono tab-num">
+                  <span>{a.score}/{denom}</span>
+                  {finished && (
+                    <span className={cn(acc >= 75 ? 'text-good' : acc >= 60 ? 'text-warn' : 'text-bad')}>{Math.round(acc)}%</span>
+                  )}
+                  <span>{formatDuration(a.timeSpentSec)}</span>
+                  <span className="ml-auto font-sans">{formatRelative(a.startedAt)}</span>
+                </div>
               </div>
-              <div className="mt-1 flex items-center gap-3 text-[12px] text-ink-muted dark:text-ink-muted-dark font-mono tab-num">
-                <span>{a.score}</span>
-                <span className={cn(a.acc >= 75 ? 'text-good' : a.acc >= 60 ? 'text-warn' : 'text-bad')}>{a.acc}%</span>
-                <span>{a.time}</span>
-                <span className="ml-auto font-sans">{a.when}</span>
-              </div>
-            </div>
-            <button className="shrink-0 text-[12.5px] font-medium text-ink dark:text-ink-dark hover:text-accent">Review</button>
-          </li>
-        ))}
+              <button
+                onClick={() => navigate(`/practice/sessions/${a.id}?q=1`)}
+                className="shrink-0 text-[12.5px] font-medium text-ink dark:text-ink-dark hover:text-accent"
+              >
+                {finished ? 'Review' : 'Resume'}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </Card>
   );

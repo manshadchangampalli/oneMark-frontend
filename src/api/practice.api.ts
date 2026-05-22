@@ -66,9 +66,35 @@ export interface SessionState {
   questions: PracticeQuestion[];
 }
 
+export interface RecentSession {
+  id: string;
+  mode: string;
+  difficulty: string | null;
+  questionCount: number;
+  score: number;
+  total: number;
+  timeSpentSec: number;
+  startedAt: string;
+  finishedAt: string | null;
+  accuracy: number | null;
+  exam:    { id: string; code: string; label: string } | null;
+  subject: { id: string; label: string } | null;
+  topic:   { id: string; label: string } | null;
+}
+
+export interface RecentSessionsPage {
+  data: RecentSession[];
+  nextCursor: string | null;
+}
+
 export const practiceApi = {
   createSession: async (dto: CreateSessionDto): Promise<SessionState> => {
     const { data } = await apiClient.post<SessionState>(ApiRoute.PRACTICE_SESSIONS, dto);
+    return data;
+  },
+
+  listSessions: async (params: { limit?: number; cursor?: string } = {}): Promise<RecentSessionsPage> => {
+    const { data } = await apiClient.get<RecentSessionsPage>(ApiRoute.PRACTICE_SESSIONS, { params });
     return data;
   },
 
