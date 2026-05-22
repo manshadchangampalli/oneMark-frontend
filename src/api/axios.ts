@@ -16,18 +16,45 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor for handling 401s (token refresh logic would go here)
+// Endpoints that must NEVER trigger refresh-on-401.
+// Refreshing on these creates the "any email logs in" bug, because a stale
+// refresh_token cookie would silently re-authenticate the previous user.
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/signup', '/auth/refresh', '/auth/logout'];
+
+// Single-flight refresh so parallel 401s don't all hit /auth/refresh.
+let refreshPromise: Promise<string> | null = null;
+function doRefresh(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post<{ accessToken: string }>(`${API_URL}/auth/refresh`, {}, { withCredentials: true })
+      .then((res) => res.data.accessToken)
+      .finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const status = error.response?.status;
+    const url = (originalRequest?.url ?? '') as string;
+    const isAuthEndpoint = AUTH_ENDPOINTS.some((p) => url.endsWith(p));
+    const hasUser = !!useAuthStore.getState().accessToken;
+
+    // Only attempt refresh if:
+    //  1. it's a 401
+    //  2. we haven't already retried this request
+    //  3. the failing request isn't one of the auth endpoints
+    //  4. we actually had a session to refresh (don't try on first-load 401s)
+    if (status === 401 && !originalRequest._retry && !isAuthEndpoint && hasUser) {
       originalRequest._retry = true;
       try {
-        // Attempt to refresh token
-        const res = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
-        const { accessToken } = res.data;
-        useAuthStore.getState().setAuth(useAuthStore.getState().user!, accessToken);
+        const accessToken = await doRefresh();
+        // Refresh succeeded — keep current user object; it'll be re-fetched on
+        // next page mount via the auth-store hydration path.
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) useAuthStore.getState().setAuth(currentUser, accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
@@ -35,6 +62,7 @@ apiClient.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
-  }
+  },
 );
