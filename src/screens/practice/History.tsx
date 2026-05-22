@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react';
-import { Card } from '@/components/ui';
-import { cn } from '@/utils';
-import { practiceApi } from '@/api/practice.api';
+import { Card } from '@/components/ui/Card';
+import { cn } from '@/utils/cn';
 import type { RecentSession } from '@/api/practice.api';
-import { ROUTES } from '@/constants';
+import { ROUTES } from '@/constants/routes';
+import { useSessionsFirstPage, loadMoreSessions } from './hooks/practice.hooks';
 
 const MODE_LABEL: Record<string, string> = {
   quick: 'Quick Practice',
@@ -50,11 +49,7 @@ export default function History() {
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const { data: firstPage, isLoading } = useQuery({
-    queryKey: ['practice-sessions', 'history-first', { limit: PAGE_SIZE }],
-    queryFn:  () => practiceApi.listSessions({ limit: PAGE_SIZE }),
-    staleTime: 30 * 1000,
-  });
+  const { data: firstPage, isLoading } = useSessionsFirstPage(PAGE_SIZE);
 
   const allAttempts: RecentSession[] = [
     ...(firstPage?.data ?? []),
@@ -70,7 +65,7 @@ export default function History() {
     if (!c) return;
     setLoadingMore(true);
     try {
-      const next = await practiceApi.listSessions({ limit: PAGE_SIZE, cursor: c });
+      const next = await loadMoreSessions(PAGE_SIZE, c);
       setPages(prev => [...prev, next.data]);
       setCursor(next.nextCursor ?? undefined);
     } finally {

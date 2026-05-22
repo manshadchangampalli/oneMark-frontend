@@ -1,22 +1,26 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Moon, LogOut, Sun, Monitor, Check, Pencil } from 'lucide-react';
-import { Card, Avatar, Pill } from '@/components/ui';
+import { Card } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
+import { Pill } from '@/components/ui/Pill';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Modal } from '@/components/ui/Modal';
-import { useAppStore } from '@/store';
+import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLogout } from '@/screens/auth/hooks/auth.hooks';
 import { authApi } from '@/api/auth.api';
-import { usersApi, type UpdateMeDto } from '@/api/users.api';
-import { examsApi } from '@/api/exams.api';
-import { ROUTES } from '@/constants';
-import { cn } from '@/utils';
+import { ROUTES } from '@/constants/routes';
+import { cn } from '@/utils/cn';
 import { toast } from 'react-hot-toast';
 import type { User } from '@/types/auth';
+import type { UpdateMeDto } from '@/api/users.api';
+import {
+  useUserStats, useUpdateMe, useAllExams, useMyExams, useSwitchExam,
+} from './hooks/profile.hooks';
 
 export default function Profile() {
   const { isDark, setDark, notificationsEnabled, toggleNotifications } = useAppStore();
@@ -28,11 +32,7 @@ export default function Profile() {
   const [editOpen, setEditOpen] = useState(false);
   const [examOpen, setExamOpen] = useState(false);
 
-  const { data: stats } = useQuery({
-    queryKey: ['user-stats'],
-    queryFn:  usersApi.getStats,
-    staleTime: 30 * 1000,
-  });
+  const { data: stats } = useUserStats();
 
   function handleThemeChange(value: string) {
     setTheme(value);
@@ -219,19 +219,19 @@ function EditProfileDialog({
     }
   }, [open, user]);
 
-  const mutation = useMutation({
-    mutationFn: (dto: UpdateMeDto) => usersApi.updateMe(dto),
-    onSuccess: () => { toast.success('Profile updated'); onSaved(); },
-    onError:   () => { toast.error('Failed to update profile'); },
-  });
+  const mutation = useUpdateMe();
 
   function submit(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    mutation.mutate({
+    const dto: UpdateMeDto = {
       name:   name.trim(),
       school: school.trim() || null,
       grade:  grade.trim() || null,
+    };
+    mutation.mutate(dto, {
+      onSuccess: () => { toast.success('Profile updated'); onSaved(); },
+      onError:   () => { toast.error('Failed to update profile'); },
     });
   }
 
@@ -298,30 +298,18 @@ function ExamSwitcherDialog({
   currentCode?: string;
   onSwitched: () => void;
 }) {
-  const { data: allExams = [], isLoading: examsLoading } = useQuery({
-    queryKey: ['exams'],
-    queryFn:  examsApi.list,
-    enabled:  open,
-    staleTime: 5 * 60 * 1000,
-  });
-  const { data: myExams = [] } = useQuery({
-    queryKey: ['my-exams'],
-    queryFn:  examsApi.myExams,
-    enabled:  open,
-  });
+  const { data: allExams = [], isLoading: examsLoading } = useAllExams(open);
+  const { data: myExams  = [] }                          = useMyExams(open);
 
   const enrolledIds = new Set(myExams.map((e) => e.examId));
+  const switchMutation = useSwitchExam();
 
-  const switchMutation = useMutation({
-    mutationFn: async (examId: string) => {
-      if (!enrolledIds.has(examId)) {
-        await examsApi.enrol(examId);
-      }
-      return examsApi.setPrimary(examId);
-    },
-    onSuccess: () => { toast.success('Target exam updated'); onSwitched(); },
-    onError:   () => { toast.error('Failed to switch exam'); },
-  });
+  function handleSwitch(examId: string) {
+    switchMutation.mutate({ examId, enrolledIds }, {
+      onSuccess: () => { toast.success('Target exam updated'); onSwitched(); },
+      onError:   () => { toast.error('Failed to switch exam'); },
+    });
+  }
 
   return (
     <Modal
@@ -343,7 +331,7 @@ function ExamSwitcherDialog({
             return (
               <button
                 key={ex.id}
-                onClick={() => !isCurrent && switchMutation.mutate(ex.id)}
+                onClick={() => !isCurrent && handleSwitch(ex.id)}
                 disabled={isCurrent || switchMutation.isPending}
                 className={cn(
                   'w-full text-left p-3 rounded-lg border transition-colors flex items-center gap-3',

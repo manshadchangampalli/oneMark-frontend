@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn as clsx } from '@/utils/cn';
-import { ROUTES } from '@/constants';
+import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth.api';
 import { useStates, useDistricts, useExams } from '@/hooks/location.hooks';

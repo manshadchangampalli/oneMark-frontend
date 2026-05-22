@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { ChevronUp, ThumbsUp } from 'lucide-react';
-import { Card, Avatar, Pill } from '@/components/ui';
-import { cn } from '@/utils';
+import { Card } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
+import { Pill } from '@/components/ui/Pill';
+import { cn } from '@/utils/cn';
 
 interface CommunityEntry {
   id: string;

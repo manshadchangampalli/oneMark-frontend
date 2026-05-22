@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Card } from '@/components/ui';
-import { cn } from '@/utils';
+import { Card } from '@/components/ui/Card';
+import { cn } from '@/utils/cn';
 
 type Tab = 'official' | 'community';
 

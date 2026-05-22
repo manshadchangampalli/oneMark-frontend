@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Bookmark, BookmarkCheck, Check, MessageSquare, ArrowRight, Users } from 'lucide-react';
-import { Card, Button, Pill, Avatar } from '@/components/ui';
-import { ROUTES } from '@/constants';
-import { cn } from '@/utils';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Pill } from '@/components/ui/Pill';
+import { Avatar } from '@/components/ui/Avatar';
+import { ROUTES } from '@/constants/routes';
+import { cn } from '@/utils/cn';
 import { useDailyChallenge, useSubmitDailyChallenge } from '@/screens/home/hooks/home.hooks';
 import { dailyChallengeApi } from '@/api/daily-challenge.api';
 import type { SubmitAttemptResult } from '@/api/daily-challenge.api';
 import { authApi } from '@/api/auth.api';
 import { useAuthStore } from '@/store/useAuthStore';
-import { ExplanationPanel } from './components';
+import { ExplanationPanel } from './components/ExplanationPanel';
 
 export default function Question() {
   const navigate = useNavigate();

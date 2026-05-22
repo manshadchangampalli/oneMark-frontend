@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet, useRouteError } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AppLayout } from './layouts/AppLayout';
-import { ROUTES } from '@/constants';
+import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/store/useAuthStore';
 
 function ProtectedRoute() {

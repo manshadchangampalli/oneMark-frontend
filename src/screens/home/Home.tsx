@@ -1,10 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { Users, CalendarClock, ChevronRight, ArrowRight, BookOpen, Trophy, Flame, CheckCircle2 } from 'lucide-react';
-import { Card, Button, SectionHeader, Pill, ProgressRing, Mascot } from '@/components/ui';
-import { RECOMMENDED, SUBJECTS } from '@/constants';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Pill } from '@/components/ui/Pill';
+import { ProgressRing } from '@/components/ui/ProgressRing';
+import { Mascot } from '@/components/ui/Mascot';
+import { RECOMMENDED, SUBJECTS } from '@/constants/data';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDailyChallenge, useTopicsProgress } from './hooks/home.hooks';
-import { StreakCard } from './components';
+import { StreakCard } from './components/StreakCard';
 
 function greeting() {
   const h = new Date().getHours();

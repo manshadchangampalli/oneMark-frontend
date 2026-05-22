@@ -1,9 +1,9 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Sun, LayoutGrid, TrendingUp, User, Play, Zap, Moon, SunIcon } from 'lucide-react';
-import { cn } from '@/utils';
-import { ROUTES } from '@/constants';
-import { Avatar } from '@/components/ui';
-import { useAppStore } from '@/store';
+import { cn } from '@/utils/cn';
+import { ROUTES } from '@/constants/routes';
+import { Avatar } from '@/components/ui/Avatar';
+import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 
 interface Tab {

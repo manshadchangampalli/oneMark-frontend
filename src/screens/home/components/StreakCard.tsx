@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Check } from 'lucide-react';
-import { Card, Flame } from '@/components/ui';
-import { cn } from '@/utils';
-import { WEEK, WEEK_ACTIVE } from '@/constants';
+import { Card } from '@/components/ui/Card';
+import { Flame } from '@/components/ui/Flame';
+import { cn } from '@/utils/cn';
+import { WEEK, WEEK_ACTIVE } from '@/constants/data';
 
 interface StreakCardProps {
   days: number;

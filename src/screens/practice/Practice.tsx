@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Zap, Timer, Crosshair, ArrowUpRight, BarChart2 } from 'lucide-react';
-import { Card, Chip, Segmented, SectionHeader } from '@/components/ui';
-import { cn } from '@/utils';
-import { practiceApi } from '@/api/practice.api';
+import { Card } from '@/components/ui/Card';
+import { Chip } from '@/components/ui/Chip';
+import { Segmented } from '@/components/ui/Segmented';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { cn } from '@/utils/cn';
 import type { CreateSessionDto, RecentSession } from '@/api/practice.api';
-import { subjectsApi } from '@/api/subjects.api';
+import {
+  useSubjects, useRecentSessions, useCreatePracticeSession,
+} from './hooks/practice.hooks';
 
 const MODE_LABEL: Record<string, string> = {
   quick: 'Quick Practice',
@@ -82,27 +85,26 @@ export default function Practice() {
   const [difficulty, setDifficulty] = useState('mixed');
   const [starting, setStarting] = useState<string | null>(null);
   const [startError, setStartError] = useState(false);
-  const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: subjectsApi.list,
-    staleTime: 10 * 60 * 1000,
-  });
+  const { data: subjects = [] } = useSubjects();
+  const createSession = useCreatePracticeSession();
 
-  async function startSession(mode: 'quick' | 'drill') {
+  function startSession(mode: 'quick' | 'drill') {
     setStarting(mode);
     setStartError(false);
-    try {
-      const dto: CreateSessionDto = {
-        mode,
-        difficulty: difficulty as CreateSessionDto['difficulty'],
-        ...(subject !== 'all' ? { subjectId: subject } : {}),
-      };
-      const data = await practiceApi.createSession(dto);
-      navigate(`/practice/sessions/${data.session.id}?q=1`, { state: data });
-    } catch {
-      setStartError(true);
-      setStarting(null);
-    }
+    const dto: CreateSessionDto = {
+      mode,
+      difficulty: difficulty as CreateSessionDto['difficulty'],
+      ...(subject !== 'all' ? { subjectId: subject } : {}),
+    };
+    createSession.mutate(dto, {
+      onSuccess: (data) => {
+        navigate(`/practice/sessions/${data.session.id}?q=1`, { state: data });
+      },
+      onError: () => {
+        setStartError(true);
+        setStarting(null);
+      },
+    });
   }
 
   return (
@@ -253,11 +255,7 @@ export default function Practice() {
 
 function RecentAttemptsCard() {
   const navigate = useNavigate();
-  const { data, isLoading } = useQuery({
-    queryKey: ['practice-sessions', { limit: 5 }],
-    queryFn:  () => practiceApi.listSessions({ limit: 5 }),
-    staleTime: 30 * 1000,
-  });
+  const { data, isLoading } = useRecentSessions(5);
 
   if (isLoading) {
     return (

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { X, Check, ArrowRight, Trophy } from 'lucide-react';
-import { Card, Button, Pill } from '@/components/ui';
-import { ROUTES } from '@/constants';
-import { cn } from '@/utils';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Pill } from '@/components/ui/Pill';
+import { ROUTES } from '@/constants/routes';
+import { cn } from '@/utils/cn';
 import { practiceApi } from '@/api/practice.api';
 import type { PracticeQuestion, SubmitAttemptResult, FinishResult, SessionState } from '@/api/practice.api';
-import { ExplanationPanel } from '@/screens/question/components';
+import { ExplanationPanel } from '@/screens/question/components/ExplanationPanel';
 import { authApi } from '@/api/auth.api';
 import { useAuthStore } from '@/store/useAuthStore';
 
