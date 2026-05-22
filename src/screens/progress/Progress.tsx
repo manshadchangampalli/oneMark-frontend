@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, SectionHeader, Avatar } from '@/components/ui';
 import { MASTERY, ACHIEVEMENTS, LEADERBOARD } from '@/constants';
@@ -44,26 +44,33 @@ const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
 };
 
 const STATS = [
-  { label: 'Solved',   value: '1,284', tone: 'ink'    as const, Icon: BookOpen },
-  { label: 'Accuracy', value: '76%',   tone: 'good'   as const, Icon: Target   },
-  { label: 'Streak',   value: '23',    tone: 'accent' as const, Icon: Flame    },
-  { label: 'Rank',     value: '#3',    tone: 'ink'    as const, Icon: Trophy   },
+  { label: 'Solved', value: '1,284', tone: 'ink' as const, Icon: BookOpen },
+  { label: 'Accuracy', value: '76%', tone: 'good' as const, Icon: Target },
+  { label: 'Streak', value: '23', tone: 'accent' as const, Icon: Flame },
+  { label: 'Rank', value: '#3', tone: 'ink' as const, Icon: Trophy },
 ];
 
 function lvlColor(lvl: number, dark: boolean): string {
   if (lvl === -1) return 'transparent';
-  if (dark) return ['#221F18','#3A2E1E','#7A3D14','#B7491A','#E8580C'][lvl] ?? 'transparent';
-  return ['#F1ECE0','#F5D9C4','#EFAE85','#E07A45','#D4541A'][lvl] ?? 'transparent';
+  if (dark) return ['#221F18', '#3A2E1E', '#7A3D14', '#B7491A', '#E8580C'][lvl] ?? 'transparent';
+  return ['#F1ECE0', '#F5D9C4', '#EFAE85', '#E07A45', '#D4541A'][lvl] ?? 'transparent';
 }
 
 export default function Progress() {
   const { data: activity = [] } = useQuery({
     queryKey: ['user-activity', { days: HEATMAP_WEEKS * 7 }],
-    queryFn:  () => usersApi.getActivity(HEATMAP_WEEKS * 7),
+    queryFn: () => usersApi.getActivity(HEATMAP_WEEKS * 7),
     staleTime: 5 * 60 * 1000,
   });
-  const heatmap     = useMemo(() => gridFromActivity(activity, HEATMAP_WEEKS), [activity]);
+  const heatmap = useMemo(() => gridFromActivity(activity, HEATMAP_WEEKS), [activity]);
   const totalActive = useMemo(() => activity.filter(a => a.count > 0).length, [activity]);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [heatmap]);
 
   return (
     <div className="view-in pb-6 lg:pb-0">
@@ -153,11 +160,11 @@ export default function Progress() {
                 <span className="text-ink dark:text-ink-dark">{totalActive}</span> active days
               </div>
             </div>
-            <div className="overflow-x-auto no-scrollbar">
+            <div ref={scrollRef} className="overflow-x-auto no-scrollbar">
               <div className="flex gap-[3px]">
-                {heatmap.map((col, w) => (
+                {heatmap?.map((col, w) => (
                   <div key={w} className="flex flex-col gap-[3px]">
-                    {col.map((cell, d) => (
+                    {col?.map((cell, d) => (
                       <HeatCell
                         key={d}
                         lvl={cell.lvl}
@@ -170,7 +177,7 @@ export default function Progress() {
             </div>
             <div className="mt-3 flex items-center justify-end gap-2 text-[11px] text-ink-muted dark:text-ink-muted-dark font-mono">
               <span>less</span>
-              {[0,1,2,3,4].map((l) => <HeatLegend key={l} lvl={l} />)}
+              {[0, 1, 2, 3, 4].map((l) => <HeatLegend key={l} lvl={l} />)}
               <span>more</span>
             </div>
           </Card>
