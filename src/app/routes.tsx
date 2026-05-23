@@ -30,6 +30,7 @@ const Home            = lazyWithReload(() => import('@/screens/home/Home'));
 const Practice        = lazyWithReload(() => import('@/screens/practice/Practice'));
 const PracticeSession = lazyWithReload(() => import('@/screens/practice/PracticeSession'));
 const PracticeHistory = lazyWithReload(() => import('@/screens/practice/History'));
+const Bookmarks       = lazyWithReload(() => import('@/screens/bookmarks/Bookmarks'));
 const Question        = lazyWithReload(() => import('@/screens/question/Question'));
 const Progress = lazyWithReload(() => import('@/screens/progress/Progress'));
 const Profile  = lazyWithReload(() => import('@/screens/profile/Profile'));
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
           { path: 'today',    element: <Suspense fallback={<Loading />}><Home /></Suspense> },
           { path: 'practice', element: <Suspense fallback={<Loading />}><Practice /></Suspense> },
           { path: 'practice/history', element: <Suspense fallback={<Loading />}><PracticeHistory /></Suspense> },
+          { path: 'bookmarks',        element: <Suspense fallback={<Loading />}><Bookmarks /></Suspense> },
           { path: 'practice/sessions/:sessionId', element: <Suspense fallback={<Loading />}><PracticeSession /></Suspense> },
           { path: 'question/:id', element: <Suspense fallback={<Loading />}><Question /></Suspense> },
           { path: 'progress', element: <Suspense fallback={<Loading />}><Progress /></Suspense> },

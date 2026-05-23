@@ -4,6 +4,7 @@ import { X, Check, ArrowRight, Trophy } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
+import { BookmarkButton } from '@/components/ui/BookmarkButton';
 import { ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
 import { practiceApi } from '@/api/practice.api';
@@ -273,6 +274,7 @@ export default function PracticeSession() {
             <div className="flex items-center gap-2 mb-4 flex-wrap">
               <Pill tone="warn">{q.difficulty}</Pill>
               <span className="ml-auto font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num">+{q.xpReward} XP</span>
+              <BookmarkButton questionId={q.id} />
             </div>
 
             {/* Prompt */}

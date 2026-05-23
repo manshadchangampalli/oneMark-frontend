@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Bookmark, BookmarkCheck, Check, MessageSquare, ArrowRight, Users } from 'lucide-react';
+import { X, Check, MessageSquare, ArrowRight, Users } from 'lucide-react';
+import { BookmarkButton } from '@/components/ui/BookmarkButton';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
@@ -23,7 +24,6 @@ export default function Question() {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitAttemptResult | null>(null);
-  const [bookmarked, setBookmarked] = useState(false);
   const [seconds, setSeconds] = useState(0);
 
   // Record start time in DB (idempotent — won't overwrite original startedAt)
@@ -137,12 +137,7 @@ export default function Question() {
             {mm}:{ss}
           </div>
         )}
-        <button
-          onClick={() => setBookmarked((b) => !b)}
-          className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-ink/4 dark:hover:bg-ink-dark/5 text-ink dark:text-ink-dark"
-        >
-          {bookmarked ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
-        </button>
+        <BookmarkButton questionId={q.id} />
       </div>
 
       <div className="lg:grid lg:grid-cols-[1fr_420px] lg:gap-8 lg:items-start lg:mt-6">
@@ -167,12 +162,7 @@ export default function Question() {
             <div className="font-mono text-[14px] tab-num text-ink dark:text-ink-dark px-2 py-1 rounded-md bg-paper dark:bg-paper-dark border border-line dark:border-line-dark">
               {mm}:{ss}
             </div>
-            <button
-              onClick={() => setBookmarked((b) => !b)}
-              className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-ink/4 text-ink dark:text-ink-dark"
-            >
-              {bookmarked ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
-            </button>
+            <BookmarkButton questionId={q.id} />
           </div>
 
           <div className="px-5 pt-5 pb-6 lg:px-0 lg:pt-0">

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Sun, LayoutGrid, TrendingUp, User, Play, Zap, Moon, SunIcon } from 'lucide-react';
 import { cn } from '@/utils/cn';
@@ -5,6 +6,7 @@ import { ROUTES } from '@/constants/routes';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useBookmarkStore } from '@/store/useBookmarkStore';
 
 interface Tab {
   id: string;
@@ -33,8 +35,14 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isDark, toggleDark } = useAppStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const loadBookmarks = useBookmarkStore((s) => s.load);
 
+  // Hydrate the bookmark Set once after authentication so every
+  // question card can do an O(1) check.
+  useEffect(() => {
+    if (isAuthenticated) loadBookmarks();
+  }, [isAuthenticated, loadBookmarks]);
 
   const isQuestion = pathname === ROUTES.QUESTION;
   const initial = user?.name?.[0] || 'U';

@@ -186,6 +186,20 @@ export default function Practice() {
               <SectionHeader eyebrow="History" title="Recent attempts" action="All history" onAction={() => navigate('/practice/history')} />
               <RecentAttemptsCard />
             </div>
+
+            {/* Bookmarks shortcut — mobile only */}
+            <div className="mt-5 lg:hidden">
+              <button
+                onClick={() => navigate('/bookmarks')}
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-line dark:border-line-dark bg-paper dark:bg-paper-dark text-left hover:border-ink/30 dark:hover:border-ink-dark/30 transition-colors"
+              >
+                <div>
+                  <div className="text-[13.5px] font-medium text-ink dark:text-ink-dark">Saved questions</div>
+                  <div className="text-[11.5px] text-ink-muted dark:text-ink-muted-dark mt-0.5">Review your bookmarks</div>
+                </div>
+                <ArrowUpRight size={16} className="text-ink-muted dark:text-ink-muted-dark" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -247,6 +261,18 @@ export default function Practice() {
             <SectionHeader eyebrow="History" title="Recent attempts" action="All" onAction={() => navigate('/practice/history')} />
             <RecentAttemptsCard />
           </div>
+
+          {/* Bookmarks shortcut */}
+          <button
+            onClick={() => navigate('/bookmarks')}
+            className="flex items-center justify-between p-4 rounded-xl border border-line dark:border-line-dark bg-paper dark:bg-paper-dark text-left hover:border-ink/30 dark:hover:border-ink-dark/30 transition-colors"
+          >
+            <div>
+              <div className="text-[13.5px] font-medium text-ink dark:text-ink-dark">Saved questions</div>
+              <div className="text-[11.5px] text-ink-muted dark:text-ink-muted-dark mt-0.5">Review your bookmarks</div>
+            </div>
+            <ArrowUpRight size={16} className="text-ink-muted dark:text-ink-muted-dark" />
+          </button>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { authApi } from '@/api/auth.api';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useBookmarkStore } from '@/store/useBookmarkStore';
 
 export function useSignup() {
   return useMutation({
@@ -15,10 +16,11 @@ export function useLogin() {
 }
 
 export function useLogout() {
-  const logout = useAuthStore((s) => s.logout);
+  const logout         = useAuthStore((s) => s.logout);
+  const resetBookmarks = useBookmarkStore((s) => s.reset);
   return useMutation({
     mutationFn: authApi.logout,
-    onSettled: logout,
+    onSettled: () => { logout(); resetBookmarks(); },
   });
 }
 
