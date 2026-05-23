@@ -27,6 +27,15 @@ export interface UserProgress {
   rank:     number;
 }
 
+export interface MasteryItem {
+  subjectId: string;
+  label:     string;
+  colorHex:  string;
+  attempted: number;
+  correct:   number;
+  pct:       number;
+}
+
 export const usersApi = {
   getStats: async (): Promise<UserStats> => {
     const { data } = await apiClient.get<UserStats>('/users/me/stats');
@@ -48,4 +57,8 @@ export const usersApi = {
     return data;
   },
 
+  getMastery: async (): Promise<MasteryItem[]> => {
+    const { data } = await apiClient.get<MasteryItem[]>('/users/me/mastery');
+    return data;
+  },
 };

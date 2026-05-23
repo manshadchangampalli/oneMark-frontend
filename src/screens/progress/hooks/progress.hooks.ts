@@ -26,3 +26,11 @@ export function useLeaderboard(params: LeaderboardParams = {}) {
     staleTime: 60 * 1000,
   });
 }
+
+export function useUserMastery() {
+  return useQuery({
+    queryKey: ['user-mastery'],
+    queryFn:  () => usersApi.getMastery(),
+    staleTime: 60 * 1000,
+  });
+}
