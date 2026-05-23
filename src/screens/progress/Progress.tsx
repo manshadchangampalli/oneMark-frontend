@@ -4,7 +4,7 @@ import { AchievementsGrid } from './components/AchievementsGrid';
 import { ActivityHeatmap } from './components/ActivityHeatmap';
 import { Leaderboard } from './components/Leaderboard';
 import { StreakHistory } from './components/StreakHistory';
-import { useUserActivity, useUserProgress } from './hooks/progress.hooks';
+import { useUserActivity } from './hooks/progress.hooks';
 
 const HEATMAP_DAYS = 52 * 7;
 

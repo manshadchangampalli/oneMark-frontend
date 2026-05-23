@@ -21,9 +21,10 @@ export interface ActivityDay {
 }
 
 export interface UserProgress {
-  solved: number;
-  accuracy: string;
-  streak: number;
+  solved:   number;
+  accuracy: string; // e.g. "76%"
+  streak:   number;
+  rank:     number;
 }
 
 export const usersApi = {

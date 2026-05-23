@@ -1,42 +1,56 @@
-import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Avatar } from '@/components/ui/Avatar';
-import { LEADERBOARD } from '@/constants/data';
 import { cn } from '@/utils/cn';
+import { useLeaderboard } from '../hooks/progress.hooks';
 
 export function Leaderboard() {
+  const { data, isLoading } = useLeaderboard({ scope: 'exam', limit: 10 });
+  const rows = data?.top ?? [];
+
   return (
     <div>
-      <SectionHeader eyebrow="This week" title="Leaderboard" action="Full list" />
+      <SectionHeader
+        eyebrow={data?.scope === 'global' ? 'Global' : 'In your exam'}
+        title="Leaderboard"
+        action={data && data.total > rows.length ? 'Full list' : undefined}
+      />
       <Card padded={false}>
-        <ul className="divide-y divide-line dark:divide-line-dark">
-          {LEADERBOARD.map((p) => (
-            <li
-              key={p.id}
-              className={cn(
-                'px-4 py-3 flex items-center gap-3',
-                p.you && 'bg-accent-soft/40 dark:bg-[#2A1B14]/40',
-              )}
-            >
-              <span className="font-mono text-[13px] text-ink-muted dark:text-ink-muted-dark tab-num w-5">{p.rank}</span>
-              <Avatar initial={p.avatar} tone={p.you ? 'accent' : 'neutral'} size={32} ring={p.you} />
-              <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-medium text-ink dark:text-ink-dark">{p.name}</div>
-                <div className="font-mono text-[11.5px] text-ink-muted dark:text-ink-muted-dark tab-num">{p.pts.toLocaleString()} pts</div>
-              </div>
-              <div
+        {isLoading ? (
+          <div className="px-4 py-6 text-center text-[12.5px] text-ink-muted dark:text-ink-muted-dark">Loading…</div>
+        ) : rows.length === 0 ? (
+          <div className="px-4 py-6 text-center text-[12.5px] text-ink-muted dark:text-ink-muted-dark">
+            No one on the board yet — be the first.
+          </div>
+        ) : (
+          <ul className="divide-y divide-line dark:divide-line-dark">
+            {rows.map((p) => (
+              <li
+                key={p.userId}
                 className={cn(
-                  'inline-flex items-center gap-0.5 font-mono text-[11.5px] tab-num',
-                  p.change > 0 ? 'text-good' : p.change < 0 ? 'text-bad' : 'text-ink-muted dark:text-ink-muted-dark',
+                  'px-4 py-3 flex items-center gap-3',
+                  p.isMe && 'bg-accent-soft/40 dark:bg-[#2A1B14]/40',
                 )}
               >
-                {p.change > 0 ? <ArrowUp size={12} /> : p.change < 0 ? <ArrowDown size={12} /> : <Minus size={12} />}
-                {p.change !== 0 && Math.abs(p.change)}
-              </div>
-            </li>
-          ))}
-        </ul>
+                <span className="font-mono text-[13px] text-ink-muted dark:text-ink-muted-dark tab-num w-5">{p.rank}</span>
+                <Avatar
+                  initial={p.avatarInitial ?? p.name?.[0] ?? '?'}
+                  tone={p.isMe ? 'accent' : 'neutral'}
+                  size={32}
+                  ring={p.isMe}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-medium text-ink dark:text-ink-dark truncate">
+                    {p.isMe ? 'You' : p.name}
+                  </div>
+                  <div className="font-mono text-[11.5px] text-ink-muted dark:text-ink-muted-dark tab-num">
+                    {p.xp.toLocaleString()} XP
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </div>
   );
