@@ -4,13 +4,12 @@ import { AchievementsGrid } from './components/AchievementsGrid';
 import { ActivityHeatmap } from './components/ActivityHeatmap';
 import { Leaderboard } from './components/Leaderboard';
 import { StreakHistory } from './components/StreakHistory';
-import { useUserActivity } from './hooks/progress.hooks';
+import { useUserActivity, useUserProgress } from './hooks/progress.hooks';
 
 const HEATMAP_DAYS = 52 * 7;
 
 export default function Progress() {
   const { data: activity = [] } = useUserActivity(HEATMAP_DAYS);
-
   return (
     <div className="view-in pb-6 lg:pb-0">
       <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-8 lg:items-start">

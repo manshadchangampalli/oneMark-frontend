@@ -2,22 +2,28 @@ import { apiClient } from './axios';
 import type { User } from '@/types/auth';
 
 export interface UserStats {
-  solved:        number;
-  accuracy:      number;
-  streak:        number;
+  solved: number;
+  accuracy: number;
+  streak: number;
   longestStreak: number;
 }
 
 export interface UpdateMeDto {
-  name?:   string;
+  name?: string;
   school?: string | null;
-  grade?:  string | null;
+  grade?: string | null;
 }
 
 export interface ActivityDay {
-  date:  string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   count: number;
   level: number; // 0..4
+}
+
+export interface UserProgress {
+  solved: number;
+  accuracy: string;
+  streak: number;
 }
 
 export const usersApi = {
@@ -35,4 +41,10 @@ export const usersApi = {
     const { data } = await apiClient.get<ActivityDay[]>('/users/me/activity', { params: { days } });
     return data;
   },
+
+  getProgress: async (): Promise<UserProgress> => {
+    const { data } = await apiClient.get<UserProgress>('/users/me/progress');
+    return data;
+  },
+
 };
