@@ -1,6 +1,5 @@
 import { StatsGrid } from './components/StatsGrid';
 import { MasterySection } from './components/MasterySection';
-import { AchievementsGrid } from './components/AchievementsGrid';
 import { ActivityHeatmap } from './components/ActivityHeatmap';
 import { Leaderboard } from './components/Leaderboard';
 import { StreakHistory } from './components/StreakHistory';
@@ -26,7 +25,6 @@ export default function Progress() {
           <div className="px-5 lg:px-0 mt-3 space-y-5">
             <StatsGrid />
             <MasterySection />
-            <AchievementsGrid />
           </div>
         </div>
 
