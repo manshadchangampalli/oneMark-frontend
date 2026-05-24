@@ -37,7 +37,7 @@ export interface PracticeSession {
 }
 
 export interface CreateSessionDto {
-  mode: 'quick' | 'drill';
+  mode: 'quick' | 'drill' | 'bookmark';
   subjectId?: string;
   topicId?: string;
   difficulty?: 'easy' | 'medium' | 'hard' | 'mixed';
@@ -58,7 +58,7 @@ export interface FinishResult {
   accuracy: number;
   timeSpentSec: number;
   xpAwarded: number;
-  byTopic: { topicId: string; correct: number; total: number }[];
+  byTopic: { topicId: string; label: string; correct: number; total: number; pct: number }[];
 }
 
 export interface SessionState {

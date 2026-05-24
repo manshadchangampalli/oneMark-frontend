@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Trash2 } from 'lucide-react';
+import { ChevronLeft, Trash2, Zap } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Pill } from '@/components/ui/Pill';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
+import { toast } from 'react-hot-toast';
 import type { BookmarkRow } from '@/api/bookmarks.api';
 import { useBookmarkStore } from '@/store/useBookmarkStore';
 import { useBookmarksFirstPage, loadMoreBookmarks } from './hooks/bookmarks.hooks';
+import { useCreatePracticeSession } from '@/screens/practice/hooks/practice.hooks';
 
 const PAGE_SIZE = 20;
 
@@ -71,6 +74,19 @@ export default function Bookmarks() {
     }
   }
 
+  const createSession = useCreatePracticeSession();
+
+  function handlePracticeAll() {
+    createSession.mutate({ mode: 'bookmark' }, {
+      onSuccess: (data) => {
+        navigate(`/practice/sessions/${data.session.id}?q=1`, { state: data });
+      },
+      onError: () => {
+        toast.error('Could not start session. Try again.');
+      },
+    });
+  }
+
   return (
     <div className="view-in pb-6">
       <div className="px-5 pt-4 pb-3 flex items-center gap-3">
@@ -81,12 +97,23 @@ export default function Bookmarks() {
         >
           <ChevronLeft size={18} />
         </button>
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="text-[11px] uppercase tracking-[0.14em] text-ink-muted dark:text-ink-muted-dark font-mono">Saved</div>
           <h1 className="mt-1 text-[22px] font-semibold tracking-tight text-ink dark:text-ink-dark">
             Bookmarks
           </h1>
         </div>
+        {allRows.length > 0 && (
+          <Button
+            variant="primary"
+            size="sm"
+            icon={Zap}
+            onClick={handlePracticeAll}
+            disabled={createSession.isPending}
+          >
+            {createSession.isPending ? 'Starting…' : 'Practice these'}
+          </Button>
+        )}
       </div>
 
       <div className="px-5 mt-2">

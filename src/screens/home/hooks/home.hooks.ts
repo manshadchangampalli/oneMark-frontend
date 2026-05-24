@@ -20,6 +20,15 @@ export function useTopicsProgress(limit = 4) {
   });
 }
 
+export function useTopSolvers(challengeId: string | undefined, limit = 5) {
+  return useQuery({
+    queryKey: ['dc-top-solvers', challengeId, limit],
+    queryFn:  () => dailyChallengeApi.topSolvers(challengeId!, limit),
+    enabled:  !!challengeId,
+    staleTime: 60 * 1000,
+  });
+}
+
 export function useSubmitDailyChallenge() {
   const queryClient = useQueryClient();
   return useMutation({

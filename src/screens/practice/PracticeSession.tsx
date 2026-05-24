@@ -143,6 +143,40 @@ export default function PracticeSession() {
           </div>
         )}
 
+        {/* Per-topic breakdown */}
+        {finishResult.byTopic.length > 0 && (
+          <Card className="mb-4">
+            <div className="text-[11px] uppercase tracking-[0.14em] text-ink-muted dark:text-ink-muted-dark font-mono mb-3">
+              By topic
+            </div>
+            <ul className="space-y-3">
+              {finishResult.byTopic.map((t) => {
+                const tone = t.pct >= 75 ? 'text-good' : t.pct >= 50 ? 'text-warn' : 'text-bad';
+                const bar  = t.pct >= 75 ? '#3D7A4E'  : t.pct >= 50 ? '#D4541A'  : '#C8941E';
+                return (
+                  <li key={t.topicId}>
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <span className="text-[13.5px] text-ink dark:text-ink-dark truncate">{t.label}</span>
+                      <span className="font-mono text-[12.5px] tab-num">
+                        <span className={tone}>{t.pct}%</span>
+                        <span className="text-ink-muted dark:text-ink-muted-dark ml-2">{t.correct}/{t.total}</span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-paper dark:bg-paper-dark overflow-hidden border border-line dark:border-line-dark">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${t.pct}%`, background: bar }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            {finishResult.byTopic[0].pct < 75 && finishResult.byTopic.length > 1 && (
+              <p className="mt-4 text-[12.5px] text-ink-muted dark:text-ink-muted-dark">
+                Weakest: <span className="font-medium text-ink dark:text-ink-dark">{finishResult.byTopic[0].label}</span> — try a topic drill next.
+              </p>
+            )}
+          </Card>
+        )}
+
         <div className="flex gap-3">
           <Button variant="secondary" size="lg" className="flex-1" onClick={() => navigate(ROUTES.PRACTICE)}>
             Practice again

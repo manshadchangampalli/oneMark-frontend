@@ -57,6 +57,15 @@ export interface SubmitAttemptResult {
   attempt: { id: string; isCorrect: boolean; xpAwarded: number };
 }
 
+export interface TopSolver {
+  rank:          number;
+  userId:        string;
+  name:          string;
+  avatarInitial: string | null;
+  timeSeconds:   number;
+  isMe:          boolean;
+}
+
 export const dailyChallengeApi = {
   getToday: async (): Promise<DailyChallenge> => {
     const res = await apiClient.get<DailyChallenge>(ApiRoute.DAILY_CHALLENGE);
@@ -72,6 +81,13 @@ export const dailyChallengeApi = {
     const res = await apiClient.post<SubmitAttemptResult>(
       `${ApiRoute.DAILY_CHALLENGE}/attempt`,
       dto,
+    );
+    return res.data;
+  },
+  topSolvers: async (challengeId: string, limit = 5): Promise<TopSolver[]> => {
+    const res = await apiClient.get<TopSolver[]>(
+      `${ApiRoute.DAILY_CHALLENGE}/${challengeId}/top-solvers`,
+      { params: { limit } },
     );
     return res.data;
   },

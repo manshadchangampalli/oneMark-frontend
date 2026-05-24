@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Check, MessageSquare, ArrowRight, Users } from 'lucide-react';
+import { X, Check, ArrowRight, Users } from 'lucide-react';
 import { BookmarkButton } from '@/components/ui/BookmarkButton';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,7 +8,7 @@ import { Pill } from '@/components/ui/Pill';
 import { Avatar } from '@/components/ui/Avatar';
 import { ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
-import { useDailyChallenge, useSubmitDailyChallenge } from '@/screens/home/hooks/home.hooks';
+import { useDailyChallenge, useSubmitDailyChallenge, useTopSolvers } from '@/screens/home/hooks/home.hooks';
 import { dailyChallengeApi } from '@/api/daily-challenge.api';
 import type { SubmitAttemptResult } from '@/api/daily-challenge.api';
 import { authApi } from '@/api/auth.api';
@@ -18,6 +18,7 @@ import { ExplanationPanel } from './components/ExplanationPanel';
 export default function Question() {
   const navigate = useNavigate();
   const { data: dc, isLoading } = useDailyChallenge();
+  const { data: topSolvers = [], isLoading: topSolversLoading } = useTopSolvers(dc?.id, 5);
   const submitMutation = useSubmitDailyChallenge();
   const setAuth = useAuthStore(s => s.setAuth);
   const accessToken = useAuthStore(s => s.accessToken);
@@ -238,14 +239,9 @@ export default function Question() {
                   )}
                 </>
               ) : (
-                <div className="flex gap-2">
-                  <Button variant="secondary" size="lg" className="flex-1" icon={MessageSquare} onClick={() => {}}>
-                    Discuss
-                  </Button>
-                  <Button variant="primary" size="lg" className="flex-[1.4]" iconRight={ArrowRight} onClick={() => navigate(ROUTES.HOME)}>
-                    Done
-                  </Button>
-                </div>
+                <Button variant="primary" size="lg" className="w-full" iconRight={ArrowRight} onClick={() => navigate(ROUTES.HOME)}>
+                  Done
+                </Button>
               )}
             </div>
           </div>
@@ -266,10 +262,7 @@ export default function Question() {
               </>
             ) : (
               <div className="flex gap-2">
-                <Button variant="secondary" size="lg" className="flex-1" icon={MessageSquare} onClick={() => {}}>
-                  Discuss
-                </Button>
-                <Button variant="primary" size="lg" className="flex-[1.4]" iconRight={ArrowRight} onClick={() => navigate(ROUTES.HOME)}>
+                <Button variant="primary" size="lg" className="w-full" iconRight={ArrowRight} onClick={() => navigate(ROUTES.HOME)}>
                   Done
                 </Button>
               </div>
@@ -335,21 +328,30 @@ export default function Question() {
               </Card>
               <Card>
                 <div className="text-[11px] uppercase tracking-[0.14em] text-ink-muted dark:text-ink-muted-dark font-mono mb-2">Top solvers today</div>
-                <ul className="space-y-2.5">
-                  {[
-                    { name: 'Aarav Mehta', time: '0:48', avatar: 'A' },
-                    { name: 'Mei Tanaka',  time: '1:02', avatar: 'M' },
-                    { name: 'You',         time: '—',    avatar: 'Y', you: true },
-                  ].map((u) => (
-                    <li key={u.name} className="flex items-center gap-2.5">
-                      <Avatar initial={u.avatar} size={28} tone={u.you ? 'accent' : 'neutral'} />
-                      <span className={cn('text-[13px] flex-1', u.you ? 'font-medium text-ink dark:text-ink-dark' : 'text-ink-muted dark:text-ink-muted-dark')}>
-                        {u.name}
-                      </span>
-                      <span className="font-mono text-[12px] text-ink-muted dark:text-ink-muted-dark tab-num">{u.time}</span>
-                    </li>
-                  ))}
-                </ul>
+                {topSolversLoading ? (
+                  <div className="py-2 text-center text-[12.5px] text-ink-muted dark:text-ink-muted-dark">Loading…</div>
+                ) : topSolvers.length === 0 ? (
+                  <div className="py-2 text-center text-[12.5px] text-ink-muted dark:text-ink-muted-dark">
+                    Be the first to solve it today.
+                  </div>
+                ) : (
+                  <ul className="space-y-2.5">
+                    {topSolvers.map((u) => {
+                      const m = Math.floor(u.timeSeconds / 60);
+                      const s = String(u.timeSeconds % 60).padStart(2, '0');
+                      return (
+                        <li key={u.userId} className="flex items-center gap-2.5">
+                          <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tab-num w-3.5">{u.rank}</span>
+                          <Avatar initial={u.avatarInitial ?? u.name?.[0] ?? '?'} size={28} tone={u.isMe ? 'accent' : 'neutral'} ring={u.isMe} />
+                          <span className={cn('text-[13px] flex-1 truncate', u.isMe ? 'font-medium text-ink dark:text-ink-dark' : 'text-ink-muted dark:text-ink-muted-dark')}>
+                            {u.isMe ? 'You' : u.name}
+                          </span>
+                          <span className="font-mono text-[12px] text-ink-muted dark:text-ink-muted-dark tab-num">{m}:{s}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </Card>
             </div>
           )}
