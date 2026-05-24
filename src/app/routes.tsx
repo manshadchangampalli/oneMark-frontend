@@ -80,6 +80,7 @@ export const router = createBrowserRouter([
           { path: 'practice/history', element: <Suspense fallback={<Loading />}><PracticeHistory /></Suspense> },
           { path: 'bookmarks',        element: <Suspense fallback={<Loading />}><Bookmarks /></Suspense> },
           { path: 'practice/sessions/:sessionId', element: <Suspense fallback={<Loading />}><PracticeSession /></Suspense> },
+          { path: 'question',     element: <Suspense fallback={<Loading />}><Question /></Suspense> },
           { path: 'question/:id', element: <Suspense fallback={<Loading />}><Question /></Suspense> },
           { path: 'progress', element: <Suspense fallback={<Loading />}><Progress /></Suspense> },
           { path: 'profile',  element: <Suspense fallback={<Loading />}><Profile /></Suspense> },
