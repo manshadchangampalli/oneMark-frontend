@@ -3,15 +3,28 @@ import { ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Flame } from '@/components/ui/Flame';
 import { cn } from '@/utils/cn';
-import { WEEK, WEEK_ACTIVE } from '@/constants/data';
 
 interface StreakCardProps {
   days: number;
-  freezes: number;
+  longestStreak: number;
+  /** Sun..Sat order for "this week" (today is the last entry) */
+  weekActive: boolean[];
 }
 
-export function StreakCard({ days, freezes }: StreakCardProps) {
+const WEEK_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export function StreakCard({ days, longestStreak, weekActive }: StreakCardProps) {
   const [expanded, setExpanded] = useState(false);
+
+  // weekActive is in chronological order ending today; build day-of-week labels accordingly
+  const today = new Date();
+  const todayDow = today.getDay(); // 0=Sun..6=Sat
+  const labels = weekActive.map((_, i) => {
+    const offsetFromToday = weekActive.length - 1 - i; // last entry = 0 (today)
+    const dow = (todayDow - offsetFromToday + 7) % 7;
+    return WEEK_LABELS[dow];
+  });
+
   return (
     <Card padded={false} className="overflow-hidden">
       <button
@@ -29,7 +42,9 @@ export function StreakCard({ days, freezes }: StreakCardProps) {
             <span className="text-[13px] text-ink-muted dark:text-ink-muted-dark">day streak</span>
           </div>
           <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark mt-1">
-            <span className="font-mono tab-num">{freezes}</span> freezes available · longest <span className="font-mono tab-num">41</span>
+            {longestStreak > 0
+              ? <>longest <span className="font-mono tab-num">{longestStreak}</span></>
+              : <>Keep going to set your first streak.</>}
           </div>
         </div>
         {expanded ? <ChevronUp size={16} className="text-ink-muted dark:text-ink-muted-dark mt-1" /> : <ChevronDown size={16} className="text-ink-muted dark:text-ink-muted-dark mt-1" />}
@@ -42,9 +57,8 @@ export function StreakCard({ days, freezes }: StreakCardProps) {
               This week
             </div>
             <div className="flex items-center justify-between">
-              {WEEK.map((d, i) => {
-                const active = WEEK_ACTIVE[i];
-                const today = i === 5;
+              {weekActive.map((active, i) => {
+                const isToday = i === weekActive.length - 1;
                 return (
                   <div key={i} className="flex flex-col items-center gap-1.5">
                     <div className={cn(
@@ -52,11 +66,11 @@ export function StreakCard({ days, freezes }: StreakCardProps) {
                       active
                         ? 'bg-accent text-white'
                         : 'bg-paper dark:bg-paper-dark text-ink-muted dark:text-ink-muted-dark border border-line dark:border-line-dark',
-                      today && 'ring-2 ring-accent/30 ring-offset-2 ring-offset-surface dark:ring-offset-surface-dark'
+                      isToday && 'ring-2 ring-accent/30 ring-offset-2 ring-offset-surface dark:ring-offset-surface-dark'
                     )}>
                       {active ? <Check size={12} strokeWidth={2.5} /> : ''}
                     </div>
-                    <div className="text-[10px] text-ink-muted dark:text-ink-muted-dark font-mono">{d}</div>
+                    <div className="text-[10px] text-ink-muted dark:text-ink-muted-dark font-mono">{labels[i]}</div>
                   </div>
                 );
               })}

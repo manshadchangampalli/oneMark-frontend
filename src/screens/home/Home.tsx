@@ -1,15 +1,31 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, CalendarClock, ChevronRight, ArrowRight, BookOpen, Trophy, Flame, CheckCircle2 } from 'lucide-react';
+import { Users, ChevronRight, ArrowRight, BookOpen, Trophy, Flame, CheckCircle2, Target } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Pill } from '@/components/ui/Pill';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Mascot } from '@/components/ui/Mascot';
-import { RECOMMENDED, SUBJECTS } from '@/constants/data';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDailyChallenge, useTopicsProgress } from './hooks/home.hooks';
+import { useUserStats } from '@/screens/profile/hooks/profile.hooks';
+import { useUserActivity, useUserMastery } from '@/screens/progress/hooks/progress.hooks';
 import { StreakCard } from './components/StreakCard';
+
+function buildWeekActive(activity: { date: string; count: number }[]): boolean[] {
+  const byDate = new Map(activity.map(d => [d.date, d.count]));
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const out: boolean[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(today.getUTCDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push((byDate.get(key) ?? 0) > 0);
+  }
+  return out;
+}
 
 function greeting() {
   const h = new Date().getHours();
@@ -28,10 +44,22 @@ export default function Home() {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const { data: dailyChallenge, isLoading: dcLoading } = useDailyChallenge();
   const { data: topicsProgress = [], isLoading: topicsLoading } = useTopicsProgress();
+  const { data: stats } = useUserStats();
+  const { data: week7 = [] } = useUserActivity(7);
+  const { data: mastery = [] } = useUserMastery();
 
-  const totalAttempts = user?.totalAttempts ?? 0;
-  const totalCorrect  = user?.totalCorrect ?? 0;
-  const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+  const totalAttempts = stats?.solved   ?? user?.totalAttempts ?? 0;
+  const accuracy      = stats?.accuracy ?? 0;
+  const streak        = stats?.streak   ?? 0;
+  const longestStreak = stats?.longestStreak ?? 0;
+
+  const weekActive = useMemo(() => buildWeekActive(week7), [week7]);
+
+  // Weak areas: subjects with at least 1 attempt, lowest accuracy first, top 3
+  const weakAreas = useMemo(
+    () => [...mastery].sort((a, b) => a.pct - b.pct).slice(0, 3),
+    [mastery],
+  );
 
   return (
     <div className="view-in pb-6 lg:pb-0">
@@ -65,7 +93,7 @@ export default function Home() {
 
           {/* Streak — mobile only (desktop: right panel) */}
           <div className="px-5 lg:hidden mb-5">
-            <StreakCard days={23} freezes={2} />
+            <StreakCard days={streak} longestStreak={longestStreak} weekActive={weekActive} />
           </div>
 
           {/* Daily challenge */}
@@ -129,7 +157,7 @@ export default function Home() {
 
           {/* Continue learning */}
           <div className="px-5 lg:px-0 mb-5">
-            <SectionHeader eyebrow="In progress" title="Continue learning" action="See all" />
+            <SectionHeader eyebrow="In progress" title="Continue learning" />
             {topicsLoading ? (
               <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 lg:mx-0 lg:px-0 pb-1 lg:grid lg:grid-cols-2">
                 {[0, 1, 2, 3].map((i) => (
@@ -178,35 +206,45 @@ export default function Home() {
             )}
           </div>
 
-          {/* Recommended */}
-          <div className="px-5 lg:px-0">
-            <SectionHeader eyebrow="From your weak areas" title="Recommended" />
-            <div className="space-y-2.5">
-              {RECOMMENDED.map((r) => (
-                <Card key={r.id} padded={false} onClick={() => {}}>
-                  <div className="p-4 flex items-center gap-3">
-                    <div className="shrink-0 w-10 h-10 rounded-lg bg-paper dark:bg-paper-dark border border-line dark:border-line-dark flex items-center justify-center">
-                      <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark">
-                        {SUBJECTS.find((s) => s.label === r.subject)?.short ?? '—'}
-                      </span>
+          {/* Weak areas — derived from real mastery */}
+          {weakAreas.length > 0 && (
+            <div className="px-5 lg:px-0">
+              <SectionHeader eyebrow="Practice these" title="Weak areas" />
+              <div className="space-y-2.5">
+                {weakAreas.map((w) => (
+                  <Card
+                    key={w.subjectId}
+                    padded={false}
+                    onClick={() => navigate('/practice', { state: { subjectId: w.subjectId } })}
+                  >
+                    <div className="p-4 flex items-center gap-3">
+                      <div
+                        className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                        style={{ background: `${w.colorHex}22`, color: w.colorHex }}
+                      >
+                        <Target size={16} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[14.5px] font-medium text-ink dark:text-ink-dark truncate">{w.label}</div>
+                        <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark">
+                          <span className="font-mono tab-num">{w.pct}%</span>
+                          <span className="ml-1.5">accuracy · {w.attempted} attempted</span>
+                        </div>
+                      </div>
+                      <ChevronRight size={16} className="text-ink-muted dark:text-ink-muted-dark" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[14.5px] font-medium text-ink dark:text-ink-dark truncate">{r.title}</div>
-                      <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark truncate">{r.reason}</div>
-                    </div>
-                    <ChevronRight size={16} className="text-ink-muted dark:text-ink-muted-dark" />
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ── Right column (desktop only) ── */}
         <div className="hidden lg:flex flex-col gap-4 lg:sticky lg:top-20">
 
           {/* Streak */}
-          <StreakCard days={23} freezes={2} />
+          <StreakCard days={streak} longestStreak={longestStreak} weekActive={weekActive} />
 
           {/* Quick stats */}
           <Card padded={false}>
@@ -217,7 +255,7 @@ export default function Home() {
               {[
                 { label: 'Solved',   value: totalAttempts.toLocaleString(),          icon: BookOpen, color: 'text-ink dark:text-ink-dark' },
                 { label: 'Accuracy', value: totalAttempts > 0 ? `${accuracy}%` : '—', icon: Trophy,   color: 'text-good' },
-                { label: 'Streak',   value: '23d',                                    icon: Flame,    color: 'text-accent' },
+                { label: 'Streak',   value: streak > 0 ? `${streak}d` : '—',          icon: Flame,    color: 'text-accent' },
                 { label: 'XP',       value: (user?.totalXp ?? 0).toLocaleString(),    icon: Trophy,   color: 'text-warn' },
               ].map((s) => (
                 <div key={s.label} className="p-3">
@@ -228,48 +266,7 @@ export default function Home() {
             </div>
           </Card>
 
-          {/* Mock test reminder */}
-          <Card padded={false}>
-            <div className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-warn-soft text-warn dark:bg-[#3A2E14] dark:text-[#E5C672] flex items-center justify-center shrink-0">
-                <CalendarClock size={17} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-medium text-ink dark:text-ink-dark">
-                  Full mock in <span className="font-mono tab-num">3</span> days
-                </div>
-                <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark">JEE-style · 90 questions · 3 hours</div>
-              </div>
-            </div>
-            <div className="border-t border-line dark:border-line-dark px-4 py-2.5">
-              <Button variant="secondary" size="sm" className="w-full">Set reminder</Button>
-            </div>
-          </Card>
-
-          {/* Study tip */}
-          <Card>
-            <div className="text-[11px] uppercase tracking-[0.14em] text-ink-muted dark:text-ink-muted-dark font-mono mb-2">Tip of the day</div>
-            <p className="text-[13.5px] text-ink dark:text-ink-dark leading-relaxed font-serif">
-              For range formula problems, always check if launch and landing are at the same height before using <span className="font-mono text-[12px]">R = v²sin(2θ)/g</span>.
-            </p>
-          </Card>
         </div>
-      </div>
-
-      {/* Mobile-only: mock test reminder */}
-      <div className="px-5 mt-5 lg:hidden">
-        <Card padded={false} className="border-dashed">
-          <div className="p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-warn-soft text-warn dark:bg-[#3A2E14] dark:text-[#E5C672] flex items-center justify-center">
-              <CalendarClock size={17} />
-            </div>
-            <div className="flex-1">
-              <div className="text-[13.5px] font-medium text-ink dark:text-ink-dark">Full mock in <span className="font-mono tab-num">3</span> days</div>
-              <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark">JEE-style · 90 questions · 3 hours</div>
-            </div>
-            <button className="text-[12.5px] text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark">Remind me</button>
-          </div>
-        </Card>
       </div>
     </div>
   );
