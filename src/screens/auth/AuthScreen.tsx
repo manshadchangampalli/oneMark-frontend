@@ -6,7 +6,8 @@ import { cn as clsx } from '@/utils/cn';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth.api';
-import { useStates, useDistricts, useExams } from '@/hooks/location.hooks';
+import { useStates, useDistricts } from '@/hooks/location.hooks';
+import { ExamCategoryPicker } from '@/components/ui/ExamCategoryPicker';
 import { useSignup, useLogin } from './hooks/auth.hooks';
 import {
   Wordmark,
@@ -211,7 +212,6 @@ function SignupView({ onBack, onSuccess }: any) {
   const [err, setErr] = useState<any>({});
   const { data: states = [] } = useStates();
   const { data: districts = [] } = useDistricts(data.stateId);
-  const { data: exams = [] } = useExams();
   const setAuth = useAuthStore(s => s.setAuth);
   const signupMutation = useSignup();
   const TOTAL = 4;
@@ -300,25 +300,10 @@ function SignupView({ onBack, onSuccess }: any) {
               <Field label="School or institute" optional><TextInput icon={<I.school/>} value={data.school} onChange={(e:any) => set('school', e.target.value)} /></Field>
               <Field label="Current grade" optional><Select value={data.grade} onChange={(e:any) => set('grade', e.target.value)} options={GRADES} placeholder="Select grade" /></Field>
               <Field label="Target exam" error={err.targetExam}>
-                <div className="grid grid-cols-2 gap-2">
-                  {exams.map(ex => (
-                    <button
-                      key={ex.id}
-                      type="button"
-                      disabled={!ex.isActive}
-                      onClick={() => ex.isActive && set('targetExam', ex.code)}
-                      className={clsx(
-                        'text-left p-3 rounded-xl2 border transition-colors',
-                        !ex.isActive && 'opacity-40 cursor-not-allowed',
-                        ex.isActive && data.targetExam === ex.code ? 'border-accent bg-accent-soft/30' : 'border-line bg-surface',
-                      )}
-                    >
-                      <div className="text-[13px] font-semibold">{ex.label}</div>
-                      {ex.description && <div className="text-[10px] text-ink-muted">{ex.description}</div>}
-                      {!ex.isActive && <div className="text-[9px] text-ink-muted mt-0.5 uppercase tracking-wide">Coming soon</div>}
-                    </button>
-                  ))}
-                </div>
+                <ExamCategoryPicker
+                  value={data.targetExam}
+                  onChange={(code) => set('targetExam', code)}
+                />
               </Field>
             </div>
           </div>

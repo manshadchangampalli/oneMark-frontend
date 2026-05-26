@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Moon, LogOut, Sun, Monitor, Check, Pencil } from 'lucide-react';
+import { Moon, LogOut, Sun, Monitor, Pencil } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { Pill } from '@/components/ui/Pill';
@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Modal } from '@/components/ui/Modal';
+import { ExamCategoryPicker } from '@/components/ui/ExamCategoryPicker';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLogout } from '@/screens/auth/hooks/auth.hooks';
@@ -19,7 +20,7 @@ import { toast } from 'react-hot-toast';
 import type { User } from '@/types/auth';
 import type { UpdateMeDto } from '@/api/users.api';
 import {
-  useUserStats, useUpdateMe, useAllExams, useMyExams, useSwitchExam,
+  useUserStats, useUpdateMe, useMyExams, useSwitchExam,
 } from './hooks/profile.hooks';
 
 export default function Profile() {
@@ -298,14 +299,13 @@ function ExamSwitcherDialog({
   currentCode?: string;
   onSwitched: () => void;
 }) {
-  const { data: allExams = [], isLoading: examsLoading } = useAllExams(open);
-  const { data: myExams  = [] }                          = useMyExams(open);
-
+  const { data: myExams = [] } = useMyExams(open);
   const enrolledIds = new Set(myExams.map((e) => e.examId));
   const switchMutation = useSwitchExam();
 
-  function handleSwitch(examId: string) {
-    switchMutation.mutate({ examId, enrolledIds }, {
+  function handlePick(_code: string, exam: { id: string; code: string }) {
+    if (exam.code === currentCode) return;
+    switchMutation.mutate({ examId: exam.id, enrolledIds }, {
       onSuccess: () => { toast.success('Target exam updated'); onSwitched(); },
       onError:   () => { toast.error('Failed to switch exam'); },
     });
@@ -316,42 +316,12 @@ function ExamSwitcherDialog({
       open={open}
       onClose={() => onOpenChange(false)}
       title="Target exam"
-      description="Choose the exam you're preparing for. Practice and progress will reflect this."
+      description="Pick a category, then choose your specific post."
     >
-      <div className="space-y-2">
-          {examsLoading && (
-            <div className="text-center py-6 text-[13px] text-ink-muted dark:text-ink-muted-dark">Loading…</div>
-          )}
-          {!examsLoading && allExams.length === 0 && (
-            <div className="text-center py-6 text-[13px] text-ink-muted dark:text-ink-muted-dark">No exams available.</div>
-          )}
-          {allExams.map((ex) => {
-            const isCurrent = ex.code === currentCode;
-            const isEnrolled = enrolledIds.has(ex.id);
-            return (
-              <button
-                key={ex.id}
-                onClick={() => !isCurrent && handleSwitch(ex.id)}
-                disabled={isCurrent || switchMutation.isPending}
-                className={cn(
-                  'w-full text-left p-3 rounded-lg border transition-colors flex items-center gap-3',
-                  isCurrent
-                    ? 'border-accent bg-accent-soft/60 dark:bg-[#2A1B14]/60'
-                    : 'border-line dark:border-line-dark hover:border-ink/30 dark:hover:border-ink-dark/30',
-                )}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-[14px] font-semibold text-ink dark:text-ink-dark">{ex.label}</div>
-                  <div className="text-[12px] text-ink-muted dark:text-ink-muted-dark">
-                    <span className="font-mono">{ex.code.toUpperCase()}</span>
-                    {isEnrolled && !isCurrent && <span> · Enrolled</span>}
-                  </div>
-                </div>
-                {isCurrent && <Check size={18} className="text-accent shrink-0" />}
-              </button>
-            );
-          })}
-      </div>
+      <ExamCategoryPicker value={currentCode} onChange={handlePick} />
+      {switchMutation.isPending && (
+        <p className="mt-3 text-center text-[12.5px] text-ink-muted dark:text-ink-muted-dark">Updating…</p>
+      )}
     </Modal>
   );
 }
